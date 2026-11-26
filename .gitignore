@@ -28,6 +28,7 @@
 /results/*
 !/results/FINAL_REPORT.md
 !/results/default_bounds.md
+!/results/detection_limits.md
 !/results/default_flip_counts.md
 !/results/headline_flip_counts.md
 !/results/overview_table.md

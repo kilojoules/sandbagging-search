@@ -111,7 +111,8 @@ def analyse(label, dirs, ev="wmdp_bio", split="disc"):
         d = delta_vs_base(st, r)
         if d is None:
             continue
-        inst.setdefault((r["direction"], r["intervention"], r["layers"], r["strength"]), {})[r["framing"]] = (d, r, flips_vs_base(st, r))
+        # the seed is part of the key: activation/weight noise is run at several seeds per configuration and each is its own instrument
+        inst.setdefault((r["direction"], r["intervention"], r["layers"], r["strength"], r["seed"]), {})[r["framing"]] = (d, r, flips_vs_base(st, r))
     n_inst = len(inst)
     out.append(f"instruments with at least one steered cell: {n_inst}")
     for vf in valid_fr:
@@ -121,7 +122,7 @@ def analyse(label, dirs, ev="wmdp_bio", split="disc"):
                 continue
             tested += 1
             (dl, lo, hi), r, _ = per[vf]
-            rm = rand.get((vf,) + key[1:])
+            rm = rand.get((vf,) + key[1:4])       # random controls are matched on (intervention, layers, strength), never on the noise seed
             ok = dl >= MIN_RESTORE and lo > 0 and (rm is None or dl - float(np.mean(rm)) >= MIN_OVER_RANDOM)
             if ok:
                 valid.append((key, dl, lo, hi, None if rm is None else float(np.mean(rm)), per.get("N")))
@@ -142,11 +143,13 @@ def analyse(label, dirs, ev="wmdp_bio", split="disc"):
                     vacuous += 1                                    # the steered run answered exactly like the unsteered one: no information
                 else:
                     have_n.append((nd, nlo, nhi))
-                ntxt = f"{nd:+.3f} [{nlo:+.3f},{nhi:+.3f}] | {fb}/{fc}{' (identical answers: vacuous)' if fb == 0 and fc == 0 else ''}"
+                ntxt = f"{nd:+.3f} [{nlo:+.3f},{nhi:+.3f}]"
+                ftxt = f"{fb}/{fc}{' (identical answers: vacuous)' if fb == 0 and fc == 0 else ''}"
             else:
-                ntxt = "- | -"
-            out.append(f"| {key[0]} | {key[1]} | {key[2]} | {key[3]} | {dl:+.3f} [{lo:+.3f},{hi:+.3f}] | "
-                       f"{'-' if rm is None else format(rm, '+.3f')} | {ntxt} | {'yes' if nper else 'NOT RUN'} |")
+                ntxt, ftxt = "-", "-"
+            seed = f" (seed {key[4]}, sigma {key[3]:g})" if key[0] == "noise" else ""          # shown for seed 0 too
+            out.append(f"| {key[0]}{seed} | {key[1]} | {key[2]} | {key[3]} | {dl:+.3f} [{lo:+.3f},{hi:+.3f}] | "
+                       f"{'-' if rm is None else format(rm, '+.3f')} | {ntxt} | {ftxt} | {'yes' if nper else 'NOT RUN'} |")
         if have_n:
             mx = max(have_n, key=lambda t: t[0])
             up = max(t[2] for t in have_n)

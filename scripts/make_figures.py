@@ -344,7 +344,7 @@ SCREEN_SHORT = {  # Table 1 row (start of the model cell) -> (label, counted in 
     "Qwen3-8B-think": ("Qwen3-8B-think", False),
     "OLMo-3.1-32B": ("OLMo-3.1-32B", False),
     "Llama-3.1-8B": ("Llama-3.1-8B", True),
-    "Llama-3.3-70B bf16, direct": ("Llama-3.3-70B, direct answers", True),
+    "Llama-3.3-70B bf16, forced choice": ("Llama-3.3-70B, direct answers", True),     # the same answer mode; Table 1 says "forced choice"
     "Llama-3.3-70B bf16, visible": ("Llama-3.3-70B, visible reasoning", True),
     "GLM-4-9B": ("GLM-4-9B", True),
     "Mistral-Small": ("Mistral-Small-3.2-24B", False),

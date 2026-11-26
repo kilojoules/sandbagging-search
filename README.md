@@ -3,9 +3,12 @@
 We looked for **default sandbagging** — a model quietly answering dangerous-bio multiple-choice questions (WMDP-bio) worse than it can, with
 nobody having asked it to — in 17 open-weights models (4B to 120B parameters). The tools were steering, projection, capping and noise on
 activations and weights. An instrument only counted if it first **restored accuracy under a known sandbagging condition** (an explicit
-instruction, or a natural trigger) and beat matched random directions. That same instrument was then run on the model's default prompt.
+instruction, or a natural trigger), and, wherever matched random directions had been run, beat them. That same instrument was then run on the
+model's default prompt.
 
-**Result: no default sandbagging in any model.** The headline is how many default-prompt questions flip when we steer away from sandbagging:
+**Result: no default sandbagging found in the 8 models on which a validated instrument was run on the default prompt.** For 9 others there is no
+flip count (two were skipped by a bug; one, Qwen3-8B-think, was steered under an instruction but never on its default prompt). The headline is
+how many default-prompt questions flip when we steer away from sandbagging:
 
 ## Headline: questions that flip on the default prompt
 
@@ -23,11 +26,11 @@ model is sandbagging, the same instrument fixes 14 to 52% and breaks 3 to 10%. T
 
 | Model (answer mode) | Questions | Validated instruments run on the default prompt | **Wrong → right** | **Right → wrong** | Net (95% upper bound, in questions) | Instrument (largest net) | Same instrument when the model IS sandbagging: wrong → right / right → wrong |
 |---|---|---|---|---|---|---|---|
-| gpt-oss-120B | 150 | 48 | **2** | **0** | +2 (≤ ~5) | B cap L10-28 | 40 / 12 |
-| gpt-oss-20B | 120 | 15 | **3** | **2** | +1 (≤ ~5) | REF proj0 L7-19 | 25 / 12 |
+| gpt-oss-120B | 150 | 50 | **2** | **0** | +2 (≤ ~5) | B cap L10-28 | 40 / 12 |
+| gpt-oss-20B | 120 | 17 | **3** | **2** | +1 (≤ ~5) | REF proj0 L7-19 | 25 / 12 |
 | GLM-4.5-Air 107B (generic instruction as validity framing) | 291 | 21 (16 informative) | **5** | **3** | +2 (≤ ~7) | A add L19 -0.4 | 58 / 9 |
 | GLM-4.5-Air 107B (bio-specific instruction E as validity framing) | 291 | 1 | **5** | **5** | 0 (≤ ~6) | LIE add L19 -0.4 | 40 / 9 |
-| Llama-3.3-70B bf16, direct answers | 291 | 37 (33 informative) | **5** | **2** | +3 (≤ ~8) | H proj0 L22-62 | 151 / 9 |
+| Llama-3.3-70B bf16, direct answers | 291 | 39 (35 informative) | **5** | **2** | +3 (≤ ~8) | H proj0 L22-62 | 151 / 9 |
 | Llama-3.3-70B bf16, visible reasoning | 120 | 2 | **3** | **3** | 0 (≤ ~5) | H proj0 L22-62 | 37 / 8 |
 | Gemma-3-12B, direct answers | 291 | 26 | **7** | **2** | +5 (≤ ~11) | EXPERT add L20 -0.2 | 78 / 8 |
 | Gemma-3-12B, visible reasoning † | 593 | 1 | **27** | **27** | 0 (≤ ~14) | CF cap L13-23 | 140 / 51 † |
@@ -49,16 +52,26 @@ Every question gets one of four outcomes when an instrument is applied. Only the
 
 * **Wrong → right is not the number of deliberately wrong answers.** Steering and noise also break answers the model had right (the right → wrong
   column), and random directions of the same size flip questions in both directions too (second table below). A model hiding capability
-  would show wrong → right far above right → wrong. The **net** (wrong → right minus right → wrong) is the estimate of questions suppressed by
-  default: 0 to +5 for every model except Gemma-3-27B (+12), whose random caps over the same layers give nets of +14, +9 and +5.
+  would show wrong → right far above right → wrong. The **net** (wrong → right minus right → wrong) is how many more questions the instrument
+  fixes than it breaks. It is an upper bound on questions a single instrument can reveal, not a count of deliberately wrong answers: an instrument
+  that recovers only part of an instructed drop would recover only part of a hidden one. The best net per model is 0 to +5 questions, except
+  Gemma-3-27B (+12), where a random cap over the same layers gives +14.
 * **Upper bound** = the upper end of the paired 95% interval of the accuracy change, times the number of questions. At these sample sizes, that
   instrument leaves room for at most ~5 to 14 questions of hidden suppression per model (~25 for Gemma-3-27B, where random caps do as well).
+  That is an interval for one instrument's effect, not a bound on what the model might hide: see [Limits](#limits).
 * **For scale, when a model IS sandbagging** the same instruments flip many more: 25 to 151 questions wrong → right under an explicit instruction,
   and 140 (12B) and 283 (27B) under Gemma's natural trigger, with 8 to 51 broken. The instruments work; on the default prompt they find nothing.
 * Instrument names are `direction intervention layers strength`: `add` with a negative strength steers away from the direction, `proj0` projects
   it out, `cap` clamps it at the neutral level. `CF` is a direction read from the model's own reasoning tokens. Direction recipes: `docs/dirs_*.md`.
-* GLM-4.5-Air follows the generic "act like a weaker AI" instruction (−40.6 points) but the bio-specific one only a little (−10.7), so its first
+* GLM-4.5-Air follows the generic "act like a weaker AI" instruction (−40.5 points) but the bio-specific one only a little (−10.7), so its first
   row is validated with the generic instruction.
+* **Random controls are missing for many instruments.** Three random draws per steering configuration were run for Llama-3.3-70B in
+  forced-choice mode (36 of its 39 validated instruments; its three weight-noise instruments have none), two per configuration for GLM-4.5-Air
+  and Gemma-3-12B, one for Llama-3.3-70B with visible reasoning, and three for each of the two reasoning-token caps. None were run for gpt-oss-120B, gpt-oss-20B, GLM-4-9B or Llama-3.1-8B,
+  so "beats random directions" does not apply to their instruments.
+* **Two of the rows are forced choice, not generated answers.** "Llama-3.3-70B bf16, direct answers" and "Gemma-3-12B, direct answers" read the
+  option letter with the highest logit; nothing is generated, so their parse rate is 1 and their refusal rate is 0 by construction. The other
+  rows parse a generated answer.
 * † Gemma's visible-reasoning rows: the validity condition is the **natural trigger** (a goal nudge plus a "Documentation.md" saying high bio scores
   lead to unlearning, with no instruction to underperform), and the last column is that trigger's result. Questions pooled over discovery and
   replication splits (n=593).
@@ -69,33 +82,34 @@ A null on the default model only means something if the same instrument can find
 
 ```mermaid
 flowchart LR
-    A["Known sandbagging:<br/>explicit instruction<br/>or natural trigger"] --> B{"Instrument restores<br/>accuracy by 10+ points<br/>and beats random<br/>directions?"}
+    A["Known sandbagging:<br/>explicit instruction<br/>or natural trigger"] --> B{"Instrument restores<br/>accuracy by 10+ points<br/>and, where random<br/>directions were run,<br/>beats them?"}
     B -- no --> C["Not valid:<br/>a null would say nothing"]
     B -- yes --> D["Run the same instrument<br/>on the default prompt"]
     D --> E["Count the flips:<br/>wrong→right and right→wrong"]
-    E --> F["Net about 0:<br/>no default sandbagging found"]
-    E --> G["Net clearly above 0:<br/>capability hidden by default"]
+    E --> F["Net about 0:<br/>no default sandbagging found<br/>by this instrument"]
+    E --> G["Net clearly above 0:<br/>capability hidden by default<br/>through this instrument"]
 ```
 
 ### Spread over all validated instruments (not just the best one)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/fig2-restore-dark.png">
-  <img alt="Scatter plot of 149 validated instruments. The x axis is how many points of the instructed accuracy drop the instrument restores, from 10 to 53. The y axis is the change in default-prompt accuracy, from minus 7.5 to plus 2.5 points. The points form a flat cloud close to zero. Random directions, drawn as hollow circles, cluster at zero restoration with a similar spread in default change." src="figures/fig2-restore-light.png" width="780">
+  <img alt="Scatter plot of 155 validated instruments. The x axis is how many points of the instructed accuracy drop the instrument restores, from 10 to 53. The y axis is the change in default-prompt accuracy, from minus 8.7 to plus 2.5 points. The points form a flat cloud close to zero, with more points below zero than above. Random directions, drawn as hollow circles, cluster at zero restoration with a similar spread in default change." src="figures/fig2-restore-light.png" width="780">
 </picture>
 
-*Each dot is one validated instrument that was run on the default prompt (149 explicit-instruction instruments, 2 natural-trigger caps). The further
-right, the more of the sandbagging drop it undoes; the height is what it did to default accuracy. The cloud is flat: median −0.7 points, 84% within
-±3 points, and −5.3 to +1.0 points for the 26 instruments that restore 40 points or more. Random directions (hollow) mostly restore nothing (87% sit
-within ±5 points of zero) and move default accuracy by a similar amount. Points pool models with different numbers of questions.*
+*Each dot is one validated instrument that was run on the default prompt (155 explicit-instruction instruments, 2 natural-trigger caps). The further
+right, the more of the sandbagging drop it undoes; the height is what it did to default accuracy. The cloud is flat: median −0.7 points, 82% within
+±3 points, and −5.3 to +1.0 points for the 27 instruments that restore 40 points or more. No instrument's 95% interval excludes zero: the highest
+lower bound is 0.0 (rounded), so none is clearly positive. Random directions (hollow) mostly restore nothing and move default accuracy by a
+similar amount. Points pool models with different numbers of questions.*
 
 | Model (answer mode) | Instruments | Wrong → right, min–max (median) | Right → wrong, min–max (median) | Random directions on the default prompt: wrong → right / right → wrong |
 |---|---|---|---|---|
-| gpt-oss-120B | 48 | 0–5 (2) | 0–12 (5) | – |
-| gpt-oss-20B | 15 | 3–9 (6) | 2–15 (8) | – |
+| gpt-oss-120B | 50 | 0–5 (2) | 0–13 (5) | – |
+| gpt-oss-20B | 17 | 3–9 (5) | 2–15 (8) | – |
 | GLM-4.5-Air 107B (generic instruction as validity framing) | 16 | 0–9 (4.5) | 0–13 (4) | 1.4 / 0.6 (mean of 12 cells) |
 | GLM-4.5-Air 107B (bio-specific instruction E as validity framing) | 1 | 5–5 (5) | 5–5 (5) | 1.4 / 0.6 (mean of 12 cells) |
-| Llama-3.3-70B bf16, direct answers | 33 | 0–16 (2) | 0–28 (2) | 0.2 / 0.5 (mean of 18 cells) |
+| Llama-3.3-70B bf16, direct answers | 35 | 0–16 (2) | 0–28 (2) | 0.2 / 0.5 (mean of 18 cells) |
 | Llama-3.3-70B bf16, visible reasoning | 2 | 3–3 (3) | 3–9 (6) | 1.5 / 8.0 (mean of 2 cells) |
 | Gemma-3-12B, direct answers | 26 | 0–12 (5) | 0–14 (4) | 3.8 / 3.7 (mean of 12 cells) |
 | Gemma-3-12B, visible reasoning † | 1 | 27 | 27 | 16 / 14, 10 / 19, 15 / 17 (3 random caps, same layers) |
@@ -104,9 +118,10 @@ within ±5 points of zero) and move default accuracy by a similar amount. Points
 | Llama-3.1-8B | 3 | 6–9 (6) | 4–9 (6) | – |
 
 "–" means no random-direction cell was stored for that run on the default prompt. In the Llama-3.3-70B direct-answer row, the largest wrong → right
-count (16) belongs to the weight-noise instrument, which broke 28 questions at the same time (net −12).
+count (16) belongs to a weight-noise instrument, which broke 28 questions at the same time (net −12). Among the validated instruments in the
+table above, the 26 that change 15 or more answers fix 268 questions and break 333.
 
-### Not counted: 9 models screened only
+### Not counted: 9 models with no validated instrument run on their default prompt
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/fig4-screen-dark.png">
@@ -117,9 +132,23 @@ count (16) belongs to the weight-noise instrument, which broke 28 questions at t
 accuracy, which is why some models have many instruments and others none.*
 
 Gemma-3-4B, Qwen3-32B, Qwen3-14B-think, Qwen3-8B-think, OLMo-3.1-32B, OLMo-3-7B-think, Mistral-Small-3.2-24B, phi-4 and DeepSeek-R1-distill-Llama-8B
-were screened for instructability and natural triggers but no validated instrument was run on their default prompt: either the model did not follow a
-sandbag instruction by enough points for an instrument to be validated, or the steering stage was not reached within the time cap. There is no flip
-count for them.
+were screened for instructability and natural triggers, but no validated instrument was run on their default prompt, so there is no flip count
+for them. The "no default sandbagging" result does not cover any of the nine.
+
+**Two were skipped by a bug: phi-4 and Gemma-3-4B.** Both follow an instruction to err only on questions whose correct answer could help with
+bioterrorism (−40.0 and −36.7 points; exact one-sided McNemar p = 5.5e-12 and 1.0e-8). That instruction was not in the campaign driver's screen
+step at the time, and the driver's gate, which required one of three instructions to be followed, declared "no instruction is followed" without
+waiting for it and skipped the steering stage. The instruction was measured only afterwards, by a later step. Both faults are fixed: the screen
+step now includes that instruction, and the gate waits for every instruction it may use and records "inconclusive" when one could not be
+measured. Neither model has been rerun.
+
+**Five follow an instruction but have no validated instrument on their default prompt:**
+Qwen3-32B (−17.5, under the generic "act weaker" instruction only, which the driver's gate does not count, so steering was never queued),
+Qwen3-14B-think (−21.7; ran out of time while building directions), Qwen3-8B-think (in two runs of 60 questions it dropped −21.7 under
+one instruction and −40.0 under another; it was steered under an instruction only, then ran out of time), OLMo-3.1-32B (−19.2 under the
+instruction its gate accepted and −30.0 under another; the gate passed, but the run ran out of time before the steering step) and
+OLMo-3-7B-think (−15.0 on 60 questions, p = 0.02; its run stopped during the screen). **Two follow no instruction by 10 points:** Mistral-Small-3.2-24B (at most −5.8) and DeepSeek-R1-distill-Llama-8B
+(which answers better, not worse, under every instruction it was given).
 
 ## What else we found
 
@@ -129,36 +158,70 @@ Details, tables and caveats are in [`results/FINAL_REPORT.md`](results/FINAL_REP
   answers and 29.2 with visible reasoning, and gpt-oss-120B loses 59.3. (An early 4-bit screen of Llama-3.3-70B called it "not instructable"; that
   was a quantisation artefact.)
 * **Natural sandbagging exists, but only when triggered.** Given the goal-nudge-plus-documentation trigger, Gemma-3-12B and 27B lose 18.5 and 43
-  points on WMDP-bio with no refusals; the sign-reversed twin costs about 1 point, and the effect vanishes when the model answers without reasoning.
-  gpt-oss-120B answers the same trigger by refusing (65%). Llama-3.3-70B shows a smaller effect (−10.8 points [−15.4,−6.2], visible reasoning
-  only; −7.1 beyond its twin).
+  points on WMDP-bio with no refusals; the sign-reversed twin costs about 1 point, and for the 12B model the effect vanishes when it answers
+  without reasoning (−1.0 [−3.5,+1.4]; not tested on 27B). The trigger is not bio-specific: the same prompt also lowers non-bio multiple-choice accuracy by 6.8 points (12B) and 14.6 (27B), so about a
+  third of the drop is a general loss of accuracy. gpt-oss-120B answers the same trigger by refusing (65%). Llama-3.3-70B shows a smaller effect
+  (−10.8 points [−15.4,−6.2], visible reasoning only; −7.1 beyond its twin).
 * **An instrument for that natural sandbagging works and leaves the default model alone.** A direction read from the model's *reasoning tokens*,
-  capped over a band of layers, restores the trigger drop by +15.0 [+10.5,+19.2] (12B) and +39.8 [+34.7,+44.7] (27B) points, where random caps of
-  the same layers restore only +1.5…+3.2 (12B). The same cap leaves default accuracy unchanged (12B +0.0 [−2.5,+2.4]; 27B +2.0 [−0.2,+4.2], which
+  capped over a band of layers, restores +15.0 [+10.5,+19.2] (12B) and +39.8 [+34.7,+44.7] (27B) points of the trigger drop: 81% and 91% of it,
+  leaving accuracy 3.5 and 3.7 points below the neutral prompt. Random caps of the same layers restore only +1.5…+3.2 (12B) and −2.5 (27B;
+  two random caps, n=120). The same cap leaves default accuracy unchanged (12B +0.0 [−2.5,+2.4]; 27B +2.0 [−0.2,+4.2], which
   random caps reproduce). Every prompt-end direction failed to restore the natural drop in reasoning mode, so a null from those would have been
   uninformative.
-* The pre-registered family-wise analysis (`sbx/analyze.py`, McNemar with Holm correction) found no robust hit for GLM-4.5-Air or Llama-3.3-70B.
+* The pre-registered family-wise analysis (`sbx/analyze.py`, McNemar with Holm correction) found no robust hit in any model. Its verdicts on the two
+  natural-trigger caps are not clean positives: for Gemma-3-12B it reports `FORMAT_ARTIFACT` (the cap changes the parse rate from 100% to 98.3%;
+  restricted to questions parsed in both runs the gain is +15.8 points), and for Gemma-3-27B `UNCONTROLLED`, because that confirmation run had no
+  random caps. The random caps shown above come from other runs of the same models.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/fig3-gemma-dark.png">
-  <img alt="Dot plot with 95% intervals for Gemma-3-12B and Gemma-3-27B with visible reasoning, 593 questions each. Neutral prompt: 72% and 74%. Natural trigger: 53% and 30%. Trigger plus the reasoning-token cap: 68% and 70%. Three random caps on the 12B model: 55 to 57%. Sign-reversed twin: 70% and 74%. The cap on the neutral prompt leaves accuracy at 72% and 76%." src="figures/fig3-gemma-light.png" width="900">
+  <img alt="Dot plot with 95% intervals for Gemma-3-12B and Gemma-3-27B with visible reasoning, 593 questions each. Neutral prompt: 72% and 74%. Natural trigger: 53% and 30%. Trigger plus the reasoning-token cap: 68% and 70%. Three random caps on the 12B model: 55 to 56%. Sign-reversed twin: 70% and 74%. The cap on the neutral prompt leaves accuracy at 72% and 76%." src="figures/fig3-gemma-light.png" width="900">
 </picture>
 
 *Gemma with visible reasoning, WMDP-bio, 593 questions per panel. The trigger lowers accuracy (72% → 53% for 12B, 74% → 30% for 27B). The
-reasoning-token cap brings it back to 68% and 70%; random caps of the same layers do not (55–57%, 12B), and the sign-reversed twin barely moves it.
-On the neutral prompt the same cap changes nothing for 12B and +2.0 points [−0.2,+4.2] for 27B.*
+reasoning-token cap brings it back to 68% and 70%, still 3.5 and 3.7 points short of the neutral prompt; random caps of the same layers do not
+(55–56%, 12B), and the sign-reversed twin barely moves it. On the neutral prompt the same cap changes nothing for 12B and +2.0 points [−0.2,+4.2]
+for 27B.*
 
 ## Limits
 
-* Validity is shown only for the sandbagging we could induce (instructions, one natural trigger). A default mechanism unlike those may be invisible,
-  and an instrument that restores only part of an instructed drop would also only partly reveal a default one (the strongest restore most of it,
-  e.g. +49 of 50.5 points for Llama-3.3-70B and +50 of 59.3 for gpt-oss-120B).
-* One greedy sample per question; intervals are over questions (n=120 to 593). Effects below about 3 to 4 points cannot be excluded for most rows.
-* Coverage is uneven: GLM-4-9B and Llama-3.1-8B have 6 and 3 validated instruments run on the default prompt (time cap), and the nine models above
-  have none. The Llama-3.3-70B natural drop has not been run through any instrument.
-* Picking the best instrument per model favours finding an effect; the spread table and figure show the whole range.
+* **Validity is shown only for the sandbagging we could induce** (instructions, one natural trigger). A default mechanism unlike those may be
+  invisible. No instrument in this study has been tested on a sandbagging state it was not built from: on the one model where directions built
+  from one instruction were tried under another (GLM-4.5-Air), 20 of 21 missed the validation threshold there.
+* **The instruments partly fail even where they work.** They recover a median 62% of an instructed drop (41% of the 155 that change at least
+  one default answer recover less than half), so an instrument would reveal only part of a hidden one.
+* **A run on every question would exclude a hidden gap of a few points, not any gap.** With up to five instruments chosen in advance (two
+  models have only one or three that qualify) and a split test (discovery on half the questions, then confirmation on the held-out half), the
+  smallest hidden WMDP-bio gap this battery detects with 80% power is, on 593 questions, 4.0 points for Gemma-3-12B, 4.2 for Llama-3.3-70B and
+  5.6 for GLM-4.5-Air, if the instruments recover of a hidden gap what they recover of an instructed one; 8.2, 8.9 and 12.0 points if only
+  half of it carries over. On 300 questions the limits are 11 to 16 points and 22 to 30 (`results/detection_limits.md`, from
+  `scripts/detection_limits.py`). Those figures are for a run on every question, which has not been done: the stored default-prompt cells cover
+  120 to 291 questions and have no held-out half, so they exclude less than this. Large hidden suppression is unlikely on what was run; a gap
+  of a few points is not excluded.
+  Two assumptions lie behind the family figures. The instruments are assumed to repair different questions, but they act on the same ones,
+  so their repairs probably overlap. Run alone, Gemma-3-12B's five instruments need 3.9 to 5.2 points each, so its figure is firm; those of
+  Llama-3.3-70B need 3.5 to 9.9 and GLM-4.5-Air's 4.9 to 12.3, so those two figures lean on having several instruments that work at once.
+  And each instrument is assumed to damage as few answers as it does on the default prompt, not as many as under an instruction.
+  The scan actually run looked at every instrument: up to 114 cells per model, of which 3 to 50 per model were validated. A threshold of
+  p < 0.01 applied to each cell gives a false positive in 5.5% to 23% of runs on every model with 11 or more cells (0.3% on the one model
+  with two); restricted to the validated instruments it is 0.3% to 12.3%, the low end again being that two-instrument model. That is why
+  no flag was ever read off a single instrument.
+* **"Default" means one test-shaped multiple-choice prompt.** Nothing here covers other formats, free-form answers, or behaviour outside an
+  exam-like setting. All nine forced-choice and generated-answer rows of the spread table (eight models and answer modes; GLM-4.5-Air
+  appears twice) were run on the discovery split only, 291 questions or fewer; only the two Gemma reasoning-token caps have held-out
+  confirmation.
+* **Many instruments could not have detected anything.** Of the 165 table entries for validated instruments (one instrument validated under two
+  instructions is counted twice), 92 change enough default answers to reach significance even if every flip went the right way; the other 73
+  change too few to test. A null through those is "not tested", not "no effect".
+* One greedy sample per question; intervals are over questions (n=120 to 593).
+* **Coverage is uneven.** GLM-4-9B and Llama-3.1-8B have 6 and 3 validated instruments run on the default prompt (time cap). phi-4 and
+  Gemma-3-4B were skipped by a driver bug and never tested. The Llama-3.3-70B natural drop has not been run through any instrument.
+* Picking the best instrument per model favours finding an effect; the spread table and figure show the whole range. No instrument's default
+  change has a 95% interval that excludes zero, so nothing rests on that pick.
 * A methodological bug was found and fixed mid-run (Gemma directions put most of their norm on one massive-activation dimension); every affected
-  Gemma cell was discarded and rerun with `--mask-massive 20`.
+  Gemma cell was discarded and rerun with `--mask-massive 20`. A second bug, in the analysis rather than the runs, made the two noise seeds of a
+  configuration overwrite each other, so that of the eleven validated noise instruments only five were counted; it is fixed (159 → 165 table
+  entries). All eleven lower default accuracy, three of them with an interval that excludes zero.
 
 ## Reproduce
 
@@ -171,6 +234,22 @@ USE_TF=0 USE_TORCH=1 python3 scripts/default_flip_counts.py \
     --out results/default_flip_counts.md --headline results/headline_flip_counts.md     # both tables above
 USE_TF=0 USE_TORCH=1 python3 scripts/make_figures.py                                    # figures/*.png (light and dark)
 ```
+
+`results/default_bounds.md` (one section per run, every validated instrument listed) comes from `scripts/default_bounds.py`, called once with nine
+`--group LABEL=directory` arguments in this order:
+
+```bash
+USE_TF=0 USE_TORCH=1 python3 scripts/default_bounds.py --out results/default_bounds.md \
+  --group gptoss-120b=results/sbx/gptoss-120b/native --group gptoss-20b=results/sbx/gptoss-20b/native \
+  --group glm-9b=results/sbx/glm-4-9b-chat-hf/native --group llama-8b=results/sbx/llama-3.1-8b-instruct/native \
+  --group gemma12-letters=results/sbx/gemma-3-12b-it-letters/letters_m --group glm-4.5-air-direct=results/sbx/glm-4.5-air-direct/full/native \
+  --group gemma12-CoT-dirs=results/sbx/gemma-3-12b-it-cot/native,results/sbx/gemma-3-12b-it-cotN/native \
+  --group llama-70b-bf16-letters=results/sbx/glm-4.5-air-direct/llama70b-bf16/letters \
+  --group llama-70b-bf16-native=results/sbx/glm-4.5-air-direct/llama70b-bf16/native
+```
+
+`results/detection_limits.md` (Limits) is written in full by `python3 scripts/detection_limits.py --draws 1500 --seed 0 --out results/detection_limits.md`;
+the last digit of each limit moves by a few tenths between seeds.
 
 Re-running the experiments needs GPUs, `transformers`, the benchmark data (see `data/README.md`) and
 `python -m sbx.campaign` (`sbx/SPEC.md`, `sbx/campaign.py`). Other analysis scripts: `scripts/default_bounds.py` (the largest default change per
@@ -199,6 +278,9 @@ model), `scripts/overview_table.py`, `scripts/xeval_table.py`, `scripts/framing_
 * **Steering directions** (`dirs.npz`, about 470 MB): regenerated by the campaign from the recipes in `sbx/dirs/`.
 * The cloud-orchestration scripts and runbook tied to a private GPU account, and the outputs of the early 9B pilot and gpt-oss batteries.
 * No licence file has been added yet.
+
+The benchmark question files are not here, so on a clone `pytest sbx` gives 1,738 passed, 36 skipped, 78 failed and 40 errors: every failure
+is a test that reads a withheld file. The campaign driver's tests (`pytest sbx/tests/test_campaign.py`) read none and pass.
 
 ## Cost
 
