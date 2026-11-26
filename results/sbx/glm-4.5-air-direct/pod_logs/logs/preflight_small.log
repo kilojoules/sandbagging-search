@@ -1,0 +1,42 @@
+[mgpu 00:02:00] qwen3-8b: single-GPU reference
+`torch_dtype` is deprecated! Use `dtype` instead!
+[check] visible GPUs 1; parameters live on ['cuda:0'] (GiB {'cuda:0': 15.3}); nl=36 H=4096; free budget 133.2 GB
+[check] layer 2 lives on cuda:0
+[check] layer 18 lives on cuda:0
+[check] layer 33 lives on cuda:0
+[check] hidden_last OK (finite)
+[check] neutral_stats OK (U matches hidden_last)
+[check] massive_mask OK {2: 4, 18: 3, 33: 2}
+[check] steering hooks on layers [2, 18, 33] change the logits OK
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+[check] generation with hooks on several GPUs OK
+[check] iid activation noise (per-device generators) OK
+[noise_w] sigma=0.05(rel) seed=1: 12 tensors / 125.8M params, snapshot 0.23 GiB (private), realised_rel=0.05002
+[check] weight noise on attention projections of layers on both GPUs + bit-exact restore OK
+[check] gen_state_means OK
+[check] ALL OK
+[mgpu 00:02:32] qwen3-8b: sharded over both GPUs, compared with the reference
+`torch_dtype` is deprecated! Use `dtype` instead!
+[check] visible GPUs 2; parameters live on ['cuda:0', 'cuda:1'] (GiB {'cuda:0': 6.9, 'cuda:1': 8.3}); nl=36 H=4096; free budget 281.2 GB
+[check] model is sharded and fully on GPU OK
+[check] layer 2 lives on cuda:0
+[check] layer 18 lives on cuda:1
+[check] layer 33 lives on cuda:1
+[check] hidden_last OK (finite)
+[check] neutral_stats OK (U matches hidden_last)
+[check] massive_mask OK {2: 4, 18: 3, 33: 2}
+[check] steering hooks on layers [2, 18, 33] change the logits OK
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+[check] generation with hooks on several GPUs OK
+[check] iid activation noise (per-device generators) OK
+[noise_w] sigma=0.05(rel) seed=1: 12 tensors / 125.8M params, snapshot 0.23 GiB (private), realised_rel=0.05002
+[check] weight noise on attention projections of layers on both GPUs + bit-exact restore OK
+[check] gen_state_means OK
+[check] vs single-GPU reference: hidden-state per-row cosine min 1.00000
+[check] vs single-GPU reference: U: max relative difference 0.0000
+[check] vs single-GPU reference: logits: max relative difference 0.0000
+[check] vs single-GPU reference: steered: max relative difference 0.0000
+[check] ALL OK
+NVIDIA H200, 0 MiB
+NVIDIA H200, 0 MiB
+[mgpu 00:02:45] DONE

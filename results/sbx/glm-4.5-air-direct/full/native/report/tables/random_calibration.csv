@@ -1,0 +1,4 @@
+model,intervention,n_cells,mean_delta,n_raw_p_below_alpha,n_gain_ge_min_delta,n_candidates
+glm-4.5-air-direct,add,12,0.025200458190148916,4,4,1
+glm-4.5-air-direct,cap,12,-0.002004581901489118,0,0,0
+glm-4.5-air-direct,proj0,12,-0.0031500572737686145,0,0,0

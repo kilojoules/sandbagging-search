@@ -1,0 +1,20 @@
+{
+ "cells": 34,
+ "minutes": 35.4,
+ "warnings": [
+  "requested directions not built: ['V', 'H'] (built: ['A', 'B', 'EA_chat', 'EA_mcq', 'EA_test', 'EFFORT', 'EXPERT', 'LIE', 'M', 'REF', 'TRUTH'])"
+ ],
+ "directions": [
+  "A",
+  "B",
+  "EA_chat",
+  "EA_mcq",
+  "EA_test",
+  "EFFORT",
+  "EXPERT",
+  "LIE",
+  "M",
+  "REF",
+  "TRUTH"
+ ]
+}

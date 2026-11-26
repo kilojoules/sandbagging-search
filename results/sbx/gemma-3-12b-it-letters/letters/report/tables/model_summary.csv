@@ -1,0 +1,2 @@
+model,n_records,n_baseline_cells,n_steered_cells,n_confirmatory_tested,n_candidates,n_replicated,n_ROBUST_HIT,n_UNCONTROLLED,n_GENERIC_GAIN,n_FORMAT_ARTIFACT,n_NOT_REPLICATED,n_DISCOVERY_ONLY,n_NO_EFFECT,best_delta_disc,best_cell,mean_delta_bio_ref
+gemma-3-12b-it@direct,162,18,144,60,0,0,0,0,0,0,0,0,60,0.010309278350515464,wmdp_bio|N|M|cap|L20|a0,-0.2800114547537228

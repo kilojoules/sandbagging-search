@@ -1,0 +1,176 @@
+{
+  "key": "olmo-3-7b-think",
+  "repo": "allenai/Olmo-3-7B-Think",
+  "family": "olmo",
+  "adapter": "sbx.adapters.olmo.OlmoThink",
+  "params_b": 7.298,
+  "active_params_b": 7.298,
+  "params_note": "dense model (all parameters active)",
+  "text_params_b": 7.298,
+  "dtype": "bfloat16",
+  "dtype_note": "bf16 (checkpoint dtype)",
+  "weights_gb_bf16": 14.6,
+  "weights_gb_4bit_est": 5.0,
+  "weights_gb_note": "decimal GB; bf16 = 2 x params (= sum of the HF-format safetensors shards); 4bit = NF4 + double-quant estimate (0.5159 B per quantisable decoder-layer linear weight, rest in bf16)",
+  "download_gb": 14.6,
+  "fits_single_80gb": true,
+  "fits_single_80gb_how": "bf16",
+  "fits_single_80gb_detail": "bf16: 14.6 GB weights",
+  "hidden_last_80gb": {
+    "fits_hard_pool": true,
+    "bytes_per_prompt_token": 470892,
+    "kv_cache_alive": false,
+    "free_gib_after_weights": 64.8,
+    "max_tokens_per_chunk": 147765,
+    "exceeds_core_token_budget": false,
+    "hard_pool_measured": {
+      "n_prompts": 281,
+      "max_prompt_chars": 7500,
+      "longest_prompt_tokens": 2300,
+      "chunks_over_budget": {
+        "N": 0,
+        "E": 0
+      },
+      "worst_chunk_gib": 6.1
+    },
+    "verdict": "fits: no hidden_last chunk of the hard / wmdp / nonbio direction pools exceeds the free memory of an 80 GB card (a prompt above max_tokens_per_chunk tokens would).",
+    "basis": "ESTIMATE from config numbers, not a GPU measurement. sbx.core.Ctx.hidden_last / neutral_stats call model(**enc, output_hidden_states=True): per prompt token the hidden states of all layers ((num_layers+1) * hidden_size * 2 B), the full-sequence logits (vocab_size * 2 B) and, only if the model config has use_cache=true (forward(use_cache=None) then builds a cache; kv_cache_alive says so, and all OLMo configs ship use_cache=false), the KV cache (2 * layers * kv_heads * head_dim * 2 B; an upper bound for sliding-window layers) are alive at once, and bytes_per_prompt_token is their sum. core.batches() budgets KV, prefill attention and a 14000-token chunk but not this cost. free_gib_after_weights = 79.2 GiB (an 80 GB card) - 0.8 GiB (CUDA context) - bf16 weights. max_tokens_per_chunk = free / bytes_per_prompt_token: a chunk of b prompts padded to length p holds b*p tokens, and a single prompt above the limit cannot be processed at all. hard_pool_measured: core.batches(max_new=0, cap=16, free) over the direction-pool prompts evals.get_pool()['hard'] under framings N and E with this adapter and the real tokenizer; chunks_over_budget counts chunks whose estimated peak exceeds the free memory. Measured 2026-11-22; the pool follows sbx/evals.py (n_prompts and max_prompt_chars identify it)."
+  },
+  "default_quant": null,
+  "gated": false,
+  "gating": "none",
+  "accessible_with_local_token": true,
+  "access_check": {
+    "date": "2026-11-21",
+    "method": "HfApi.model_info + HTTP HEAD (huggingface_hub.get_hf_file_metadata) with the local HF token on config.json and the first safetensors shard (200 = accessible, 401/403 raise)",
+    "config_json_status": 200,
+    "first_shard": "model-00001-of-00003.safetensors",
+    "first_shard_status": 200
+  },
+  "license": "apache-2.0",
+  "min_transformers": "4.57.0",
+  "min_transformers_note": "olmo3 first appears in the 4.57.0 wheel (absent in 4.56.2; checked); README says 'transformers 4.57.0 or higher'",
+  "verified_transformers": "4.57.6",
+  "trust_remote_code": false,
+  "auto_class": "AutoModelForCausalLM (Olmo3ForCausalLM)",
+  "thinking": "always",
+  "answer_mode": "reasoning",
+  "max_new": 4096,
+  "sys_role": "system",
+  "effort": null,
+  "layer_path": "model.model.layers",
+  "layer_path_verified": {
+    "method": "AutoModelForCausalLM.from_config(real hub config) under accelerate.init_empty_weights (meta device); numerics of the 1-based convention on a tiny random model of the same HF class through sbx.core.Ctx (sbx/tests/test_adapters_misc.py)",
+    "meta_model_class": "Olmo3ForCausalLM",
+    "layer_class": "Olmo3DecoderLayer",
+    "len_layers": 32,
+    "num_hidden_layers": 32,
+    "transformers": "4.57.6",
+    "convention": "hidden_states[L] == output of layers[L-1] for 1 <= L < nl (exact); hidden_states[nl] is post final norm (avoid L = nl)",
+    "layer_output_type": "tensor",
+    "config_source": "official repo config.json (local HF cache)"
+  },
+  "checkpoint_key_check": {
+    "method": "keys of model.safetensors.index.json (after the class's _checkpoint_conversion_mapping) vs meta-device state_dict, transformers 4.57.6",
+    "checkpoint_keys": 355,
+    "model_keys": 355,
+    "missing_in_checkpoint": [],
+    "unexpected_in_checkpoint": [],
+    "declared_tied_missing": []
+  },
+  "num_layers": 32,
+  "hidden_size": 4096,
+  "hidden_size_location": "config.hidden_size",
+  "config": {
+    "num_attention_heads": 32,
+    "num_key_value_heads": 32,
+    "head_dim": 128,
+    "vocab_size": 100278,
+    "sliding_window": 4096,
+    "max_position_embeddings": 65536
+  },
+  "kv_bytes_per_token_full_attention": 524288,
+  "special_tokens": {
+    "<|im_start|>": 100264,
+    "<|im_end|>": 100265,
+    "<|endoftext|>": 100257,
+    "<|pad|>": 100277
+  },
+  "chat_template_sha256": "6d549883b5ed1287",
+  "est_prompt_tokens": {
+    "N": 168.0,
+    "E": 235.0,
+    "N_max": 315,
+    "E_max": 382,
+    "basis": "measured over data/questions_heldout_eval.jsonl (400 four-option bio questions) with the real tokenizer + adapter.build; long-context sets (labbench) are much longer"
+  },
+  "context_window": 65536,
+  "prompt_tokens_by_set": {
+    "gpqa_biology": {
+      "n": 78,
+      "mean": 351,
+      "max": 2854,
+      "n_over_context": 0
+    },
+    "gpqa_control": {
+      "n": 150,
+      "mean": 278,
+      "max": 584,
+      "n_over_context": 0
+    },
+    "labbench_cloningscenarios": {
+      "n": 33,
+      "mean": 6003,
+      "max": 26420,
+      "n_over_context": 0
+    },
+    "labbench_litqa2": {
+      "n": 199,
+      "mean": 149,
+      "max": 205,
+      "n_over_context": 0
+    },
+    "labbench_protocolqa": {
+      "n": 108,
+      "mean": 1880,
+      "max": 4753,
+      "n_over_context": 0
+    },
+    "labbench_seqqa": {
+      "n": 200,
+      "mean": 799,
+      "max": 4496,
+      "n_over_context": 0
+    },
+    "mmlupro_biology": {
+      "n": 200,
+      "mean": 286,
+      "max": 840,
+      "n_over_context": 0
+    },
+    "questions_heldout_eval": {
+      "n": 400,
+      "mean": 167,
+      "max": 315,
+      "n_over_context": 0
+    },
+    "wmdp_train": {
+      "n": 1073,
+      "mean": 176,
+      "max": 844,
+      "n_over_context": 0
+    },
+    "basis": "framing N, real tokenizer + adapter.build over data/hard/*.jsonl, data/questions_heldout_eval.jsonl, data/wmdp_train.jsonl; n_over_context counts prompts with prompt_tokens + max_new > context_window"
+  },
+  "est_tokens_per_question": 3000,
+  "est_tokens_per_question_basis": "estimate; NOT measured. Replace with the mean generated length from the first GPU run; outputs longer than max_new are truncated and count as unparsed.",
+  "template_notes": "Same as the 32B Think: generation prompt '<|im_start|>assistant\\n<think>', '</think>' is plain text. Default system prompt 'You are OLMo, a helpful function-calling AI assistant built by Ai2. Your date cutoff is November 2024, ...', which already ends with the tool-less boilerplate; the template ALSO appends the boilerplate after every given system message, so the adapter strips it from the default, renders an explicit system turn = identity (+ blank line + framing) and lets the template append it: N is the template's own default render (tested) and a framed prompt is N plus the framing paragraph only (tested for every key). Set the class attribute adapter.keep_default_system = False to get the vendor template's native semantics (framing REPLACES the identity; the template still appends the boilerplate; N is unchanged).",
+  "known_issues": [
+    "Vendor sampling: temperature 0.6, top_p 0.95. sbx decodes greedily; the vendor recommends sampling for this model, and greedy decoding of long-CoT models is prone to repetition loops -> look at the parse rate / truncation rate of baseline N before reading any steering effect."
+  ],
+  "recommended_gpu": "any 24 GB GPU (small test target for reasoning-mode code paths)",
+  "hf_revision": "d97e442d7cc678210054dbcc9b440894d62c89a4",
+  "hf_last_modified": "2026-06-25",
+  "verification_date": "2026-11-21",
+  "greedy_only_note": "sbx decodes greedily; the vendor recommends sampling for this model, and greedy decoding of long-CoT models is prone to repetition loops -> look at the parse rate / truncation rate of baseline N before reading any steering effect."
+}

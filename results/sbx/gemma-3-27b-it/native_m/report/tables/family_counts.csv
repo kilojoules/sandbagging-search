@@ -1,0 +1,3 @@
+family,role,n_cells,n_tested,n_candidates,n_replicated,n_robust
+confirmatory,test,5,5,0,0,0
+random_control,random_control,9,9,0,0,0

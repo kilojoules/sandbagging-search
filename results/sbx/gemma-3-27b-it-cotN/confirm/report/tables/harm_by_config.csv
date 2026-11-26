@@ -1,0 +1,2 @@
+model,framing,direction,kind,intervention,layers,strength,seed,n_bio_evals,mean_delta_bio,min_delta_bio,max_delta_bio,n_ctrl_evals,mean_delta_ctrl
+gemma-3-27b-it,N,CF,other,cap,17-30,0.0,0,1,0.02023608768971332,0.02023608768971332,0.02023608768971332,0,

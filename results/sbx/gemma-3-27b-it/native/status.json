@@ -1,0 +1,26 @@
+{
+ "cells": 45,
+ "minutes": 26.4,
+ "warnings": [
+  "refusal validation FAILED (REF cells cannot be certified)"
+ ],
+ "directions": [
+  "A",
+  "B",
+  "EA_chat",
+  "EA_mcq",
+  "EA_test",
+  "EFFORT",
+  "EXPERT",
+  "G",
+  "H",
+  "LIE",
+  "LIE_mcq",
+  "M",
+  "P",
+  "REF",
+  "S",
+  "TRUTH",
+  "V"
+ ]
+}

@@ -1,0 +1,190 @@
+{
+  "key": "magistral-small-2509",
+  "repo": "mistralai/Magistral-Small-2509",
+  "family": "mistral",
+  "adapter": "sbx.adapters.mistral.Magistral",
+  "params_b": 24.0114,
+  "active_params_b": 24.0114,
+  "params_note": "dense model; the checkpoint includes the pixtral vision tower + projector (0.439 B); text decoder + embeddings + lm_head = 23.572 B",
+  "text_params_b": 23.572,
+  "dtype": "bfloat16",
+  "dtype_note": "bf16 (checkpoint dtype)",
+  "weights_gb_bf16": 48.02,
+  "weights_gb_4bit_est": 14.4,
+  "weights_gb_note": "decimal GB; bf16 = 2 x params (= sum of the HF-format safetensors shards); 4bit = NF4 + double-quant estimate (0.5159 B per quantisable decoder-layer linear weight, rest in bf16)",
+  "download_gb": 48.02,
+  "fits_single_80gb": true,
+  "fits_single_80gb_how": "bf16",
+  "fits_single_80gb_detail": "bf16: 48.0 GB weights incl. a 0.9 GB pixtral vision tower; long [THINK] generations need KV cache (0.16 MB/token)",
+  "hidden_last_80gb": {
+    "fits_hard_pool": true,
+    "bytes_per_prompt_token": 845824,
+    "kv_cache_alive": true,
+    "free_gib_after_weights": 33.7,
+    "max_tokens_per_chunk": 42752,
+    "exceeds_core_token_budget": false,
+    "hard_pool_measured": {
+      "n_prompts": 281,
+      "max_prompt_chars": 7500,
+      "longest_prompt_tokens": 2589,
+      "chunks_over_budget": {
+        "N": 0,
+        "E": 0
+      },
+      "worst_chunk_gib": 10.9
+    },
+    "verdict": "fits: no hidden_last chunk of the hard / wmdp / nonbio direction pools exceeds the free memory of an 80 GB card (a prompt above max_tokens_per_chunk tokens would).",
+    "basis": "ESTIMATE from config numbers, not a GPU measurement. sbx.core.Ctx.hidden_last / neutral_stats call model(**enc, output_hidden_states=True): per prompt token the hidden states of all layers ((num_layers+1) * hidden_size * 2 B), the full-sequence logits (vocab_size * 2 B) and, only if the model config has use_cache=true (forward(use_cache=None) then builds a cache; kv_cache_alive says so, and all OLMo configs ship use_cache=false), the KV cache (2 * layers * kv_heads * head_dim * 2 B; an upper bound for sliding-window layers) are alive at once, and bytes_per_prompt_token is their sum. core.batches() budgets KV, prefill attention and a 14000-token chunk but not this cost. free_gib_after_weights = 79.2 GiB (an 80 GB card) - 0.8 GiB (CUDA context) - bf16 weights. max_tokens_per_chunk = free / bytes_per_prompt_token: a chunk of b prompts padded to length p holds b*p tokens, and a single prompt above the limit cannot be processed at all. hard_pool_measured: core.batches(max_new=0, cap=16, free) over the direction-pool prompts evals.get_pool()['hard'] under framings N and E with this adapter and the real tokenizer; chunks_over_budget counts chunks whose estimated peak exceeds the free memory. Measured 2026-11-22; the pool follows sbx/evals.py (n_prompts and max_prompt_chars identify it)."
+  },
+  "default_quant": null,
+  "gated": false,
+  "gating": "none",
+  "accessible_with_local_token": true,
+  "access_check": {
+    "date": "2026-11-21",
+    "method": "HfApi.model_info + HTTP HEAD (huggingface_hub.get_hf_file_metadata) with the local HF token on config.json and the first safetensors shard (200 = accessible, 401/403 raise)",
+    "config_json_status": 200,
+    "first_shard": "model-00001-of-00010.safetensors",
+    "first_shard_status": 200,
+    "tokenizer_repo": "mistralai/Ministral-3-14B-Reasoning-2512",
+    "tokenizer_json_status": 200
+  },
+  "license": "apache-2.0",
+  "min_transformers": "4.52.0",
+  "min_transformers_note": "same as mistral-small-3.2-24b: Mistral3Model wrapper (model.model.language_model.layers) first appears in 4.52.0",
+  "verified_transformers": "4.57.6",
+  "trust_remote_code": false,
+  "auto_class": "AutoModelForImageTextToText (Mistral3ForConditionalGeneration); AutoModelForCausalLM rejects Mistral3Config",
+  "thinking": "on",
+  "answer_mode": "reasoning",
+  "max_new": 4096,
+  "sys_role": "system",
+  "effort": null,
+  "layer_path": "model.model.language_model.layers",
+  "layer_path_verified": {
+    "method": "AutoModelForImageTextToText.from_config(real hub config) under accelerate.init_empty_weights (meta device); numerics of the 1-based convention on a tiny random model of the same HF class through sbx.core.Ctx (sbx/tests/test_adapters_misc.py)",
+    "meta_model_class": "Mistral3ForConditionalGeneration",
+    "layer_class": "MistralDecoderLayer",
+    "len_layers": 40,
+    "num_hidden_layers": 40,
+    "transformers": "4.57.6",
+    "convention": "hidden_states[L] == output of layers[L-1] for 1 <= L < nl (exact); hidden_states[nl] is post final norm (avoid L = nl)",
+    "layer_output_type": "tensor",
+    "config_source": "official repo config.json (local HF cache)"
+  },
+  "checkpoint_key_check": {
+    "method": "keys of model.safetensors.index.json (after the class's _checkpoint_conversion_mapping) vs meta-device state_dict, transformers 4.57.6",
+    "checkpoint_keys": 585,
+    "model_keys": 585,
+    "missing_in_checkpoint": [],
+    "unexpected_in_checkpoint": [],
+    "declared_tied_missing": []
+  },
+  "num_layers": 40,
+  "hidden_size": 5120,
+  "hidden_size_location": "config.text_config.hidden_size",
+  "config": {
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "vocab_size": 131072,
+    "sliding_window": null,
+    "max_position_embeddings": 131072
+  },
+  "kv_bytes_per_token_full_attention": 163840,
+  "special_tokens": {
+    "<s>": 1,
+    "</s>": 2,
+    "<pad>": 11,
+    "[INST]": 3,
+    "[/INST]": 4,
+    "[SYSTEM_PROMPT]": 17,
+    "[/SYSTEM_PROMPT]": 18,
+    "[THINK]": 34,
+    "[/THINK]": 35
+  },
+  "chat_template_sha256": "6b5044075f09f4da",
+  "est_prompt_tokens": {
+    "N": 216.9,
+    "E": 283.9,
+    "N_max": 348,
+    "E_max": 415,
+    "basis": "measured over data/questions_heldout_eval.jsonl (400 four-option bio questions) with the real tokenizer + adapter.build; long-context sets (labbench) are much longer"
+  },
+  "context_window": 131072,
+  "prompt_tokens_by_set": {
+    "gpqa_biology": {
+      "n": 78,
+      "mean": 400,
+      "max": 3083,
+      "n_over_context": 0
+    },
+    "gpqa_control": {
+      "n": 150,
+      "mean": 325,
+      "max": 637,
+      "n_over_context": 0
+    },
+    "labbench_cloningscenarios": {
+      "n": 33,
+      "mean": 6316,
+      "max": 27694,
+      "n_over_context": 0
+    },
+    "labbench_litqa2": {
+      "n": 199,
+      "mean": 201,
+      "max": 273,
+      "n_over_context": 0
+    },
+    "labbench_protocolqa": {
+      "n": 108,
+      "mean": 2026,
+      "max": 5049,
+      "n_over_context": 0
+    },
+    "labbench_seqqa": {
+      "n": 200,
+      "mean": 886,
+      "max": 4876,
+      "n_over_context": 0
+    },
+    "mmlupro_biology": {
+      "n": 200,
+      "mean": 337,
+      "max": 844,
+      "n_over_context": 0
+    },
+    "questions_heldout_eval": {
+      "n": 400,
+      "mean": 216,
+      "max": 348,
+      "n_over_context": 0
+    },
+    "wmdp_train": {
+      "n": 1073,
+      "mean": 225,
+      "max": 848,
+      "n_over_context": 0
+    },
+    "basis": "framing N, real tokenizer + adapter.build over data/hard/*.jsonl, data/questions_heldout_eval.jsonl, data/wmdp_train.jsonl; n_over_context counts prompts with prompt_tokens + max_new > context_window"
+  },
+  "est_tokens_per_question": 3000,
+  "est_tokens_per_question_basis": "estimate: long [THINK] traces on MCQ (vendor max_new_tokens 131072); NOT measured. Replace with the mean generated length from the first GPU run; outputs longer than max_new are truncated and count as unparsed.",
+  "template_notes": "Mistral-Small-3.2 architecture/format (tekken V7 string built by hand: <s>[SYSTEM_PROMPT]{sys}[/SYSTEM_PROMPT][INST]{user}[/INST]) trained to reason inside [THINK]..[/THINK]. The repo has NO HF tokenizer/template (tekken.json only); the Ministral-3-14B-Reasoning HF tokenizer is used: its vocab is identical to Magistral's tekken.json (0 mismatching ranks of 130,072) and it has real [THINK]/[/THINK] special tokens (ids 34/35, same ids as in Magistral's tekken v13). The vendor SYSTEM_PROMPT.txt ('# HOW YOU SHOULD THINK AND ANSWER ... [THINK]..[/THINK]') is the always-present default system prompt (it switches thinking on; framing text is appended after a blank line, never replacing it). The model emits [THINK] itself; split() cuts at [/THINK]; text with [THINK] but no [/THINK] is truncated reasoning (final ''). Design choice: framing text is APPENDED to the model's default system prompt (default + blank line + framing), so N-vs-framing contrasts differ only by the framing paragraph; set the class attribute adapter.keep_default_system = False to get the vendor template's native semantics (framing REPLACES the default system prompt; N is unchanged).",
+  "known_issues": [
+    "Vendor sampling: temperature 0.7, top_p 0.95, up to 131072 new tokens. sbx decodes greedily; the vendor recommends sampling for this model, and greedy decoding of long-CoT models is prone to repetition loops -> look at the parse rate / truncation rate of baseline N before reading any steering effect.",
+    "max_new=4096 truncates long traces (unparsed = wrong); compare parse rates across conditions.",
+    "Borrowed tokenizer (Ministral-3-14B-Reasoning HF repo, loads fine with transformers 4.57.6) -> adapter.tokenizer_repos documents it; load() checks len(tok) == model text vocab size.",
+    "Text path of Mistral3ForConditionalGeneration (layers at model.model.language_model.layers, transformers>=4.52); verified like mistral-small-3.2-24b (same config; only the weights differ).",
+    "Repo holds consolidated.safetensors + HF shards; from_pretrained fetches only the HF shards (48 GB).",
+    "Output format on the real model is UNVERIFIED; est_tokens_per_question is an estimate."
+  ],
+  "recommended_gpu": "1x 80 GB (A100/H100); batches are KV-limited for 4k-token generations",
+  "hf_revision": "a31cc96ab10cf19bc42c628fedf1e359e0853c49",
+  "hf_last_modified": "2026-02-23",
+  "verification_date": "2026-11-21",
+  "greedy_only_note": "sbx decodes greedily; the vendor recommends sampling for this model, and greedy decoding of long-CoT models is prone to repetition loops -> look at the parse rate / truncation rate of baseline N before reading any steering effect.",
+  "tokenizer_repo": "mistralai/Ministral-3-14B-Reasoning-2512",
+  "tokenizer_repo_note": "borrowed HF tokenizer (identical vocab, real [THINK] tokens); see template_notes"
+}

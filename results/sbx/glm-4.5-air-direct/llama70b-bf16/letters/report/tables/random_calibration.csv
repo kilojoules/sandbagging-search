@@ -1,0 +1,4 @@
+model,intervention,n_cells,mean_delta,n_raw_p_below_alpha,n_gain_ge_min_delta,n_candidates
+llama-3.3-70b-instruct@direct,add,12,-0.004868270332187857,0,0,0
+llama-3.3-70b-instruct@direct,cap,12,-1.4456028966473392e-19,1,0,0
+llama-3.3-70b-instruct@direct,proj0,12,0.0002863688430698741,1,0,0

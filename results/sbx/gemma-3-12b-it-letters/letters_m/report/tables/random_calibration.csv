@@ -1,0 +1,4 @@
+model,intervention,n_cells,mean_delta,n_raw_p_below_alpha,n_gain_ge_min_delta,n_candidates
+gemma-3-12b-it@direct,add,8,-0.09235395189003437,0,0,0
+gemma-3-12b-it@direct,cap,8,-0.0017182130584192442,0,0,0
+gemma-3-12b-it@direct,proj0,8,-0.0047250859106529215,0,0,0

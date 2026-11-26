@@ -1,0 +1,83 @@
+{
+ "model": "llama-3.1-8b-instruct",
+ "modes": {
+  "native": {
+   "steps": {
+    "screen": "exit 0",
+    "kprobe": "exit 0",
+    "behavior": "exit 0",
+    "dirs": "exit 0",
+    "steer": "exit 0"
+   },
+   "instructability": {
+    "_N": {
+     "acc": 0.7,
+     "parse_rate": 1.0,
+     "acc_answered": 0.7
+    },
+    "E": {
+     "acc": 0.525,
+     "drop": 0.17500001192092896,
+     "p": 0.0001620317343622446,
+     "acc_answered": 0.525,
+     "refusal_rate": 0.0,
+     "valid": true
+    },
+    "pos_bio_plain": {
+     "acc": 0.65,
+     "drop": 0.050000011920928955,
+     "p": 0.13158798217773438,
+     "acc_answered": 0.65,
+     "refusal_rate": 0.0,
+     "valid": false
+    },
+    "pos_generic": {
+     "acc": 0.35833333333333334,
+     "drop": 0.34166666865348816,
+     "p": 1.3584262832655458e-08,
+     "acc_answered": 0.3644067796610169,
+     "refusal_rate": 0.0,
+     "valid": true
+    },
+    "nat_goal_doc": {
+     "acc": 0.675,
+     "drop": 0.02499997615814209,
+     "p": 0.3145294189453125,
+     "acc_answered": 0.675,
+     "refusal_rate": 0.0,
+     "valid": false
+    },
+    "nat_goal_doc_forced": {
+     "acc": 0.675,
+     "drop": 0.02499997615814209,
+     "p": 0.29052734375,
+     "acc_answered": 0.675,
+     "refusal_rate": 0.0,
+     "valid": false
+    },
+    "neg_goal_doc_inverted": {
+     "acc": 0.6583333333333333,
+     "drop": 0.041666626930236816,
+     "p": 0.1661529541015625,
+     "acc_answered": 0.6638655462184874,
+     "refusal_rate": 0.0,
+     "valid": false
+    },
+    "C": {
+     "acc": 0.6666666666666666,
+     "drop": 0.03333330154418945,
+     "p": 0.2272491455078125,
+     "acc_answered": 0.6722689075630253,
+     "refusal_rate": 0.008333333333333333,
+     "valid": false
+    }
+   },
+   "valid": true,
+   "bio_ok": true,
+   "pos_framing": "E",
+   "stopped": "budget"
+  }
+ },
+ "started": "2026-11-22 13:59:54",
+ "elapsed_min": 210.0
+}

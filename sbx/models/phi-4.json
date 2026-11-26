@@ -1,0 +1,180 @@
+{
+  "key": "phi-4",
+  "repo": "microsoft/phi-4",
+  "family": "phi",
+  "adapter": "sbx.adapters.phi.PhiInstruct",
+  "params_b": 14.6595,
+  "active_params_b": 14.6595,
+  "params_note": "dense model (all parameters active)",
+  "text_params_b": 14.659,
+  "dtype": "bfloat16",
+  "dtype_note": "bf16 (checkpoint dtype)",
+  "weights_gb_bf16": 29.32,
+  "weights_gb_4bit_est": 9.1,
+  "weights_gb_note": "decimal GB; bf16 = 2 x params (= sum of the HF-format safetensors shards); 4bit = NF4 + double-quant estimate (0.5159 B per quantisable decoder-layer linear weight, rest in bf16)",
+  "download_gb": 29.32,
+  "fits_single_80gb": true,
+  "fits_single_80gb_how": "bf16",
+  "fits_single_80gb_detail": "bf16: 29.3 GB weights",
+  "hidden_last_80gb": {
+    "fits_hard_pool": true,
+    "bytes_per_prompt_token": 825344,
+    "kv_cache_alive": true,
+    "free_gib_after_weights": 51.1,
+    "max_tokens_per_chunk": 66470,
+    "exceeds_core_token_budget": false,
+    "hard_pool_measured": {
+      "n_prompts": 281,
+      "max_prompt_chars": 7500,
+      "longest_prompt_tokens": 2248,
+      "chunks_over_budget": {
+        "N": 0,
+        "E": 0
+      },
+      "worst_chunk_gib": 10.7
+    },
+    "verdict": "fits: no hidden_last chunk of the hard / wmdp / nonbio direction pools exceeds the free memory of an 80 GB card (a prompt above max_tokens_per_chunk tokens would).",
+    "basis": "ESTIMATE from config numbers, not a GPU measurement. sbx.core.Ctx.hidden_last / neutral_stats call model(**enc, output_hidden_states=True): per prompt token the hidden states of all layers ((num_layers+1) * hidden_size * 2 B), the full-sequence logits (vocab_size * 2 B) and, only if the model config has use_cache=true (forward(use_cache=None) then builds a cache; kv_cache_alive says so, and all OLMo configs ship use_cache=false), the KV cache (2 * layers * kv_heads * head_dim * 2 B; an upper bound for sliding-window layers) are alive at once, and bytes_per_prompt_token is their sum. core.batches() budgets KV, prefill attention and a 14000-token chunk but not this cost. free_gib_after_weights = 79.2 GiB (an 80 GB card) - 0.8 GiB (CUDA context) - bf16 weights. max_tokens_per_chunk = free / bytes_per_prompt_token: a chunk of b prompts padded to length p holds b*p tokens, and a single prompt above the limit cannot be processed at all. hard_pool_measured: core.batches(max_new=0, cap=16, free) over the direction-pool prompts evals.get_pool()['hard'] under framings N and E with this adapter and the real tokenizer; chunks_over_budget counts chunks whose estimated peak exceeds the free memory. Measured 2026-11-22; the pool follows sbx/evals.py (n_prompts and max_prompt_chars identify it)."
+  },
+  "default_quant": null,
+  "gated": false,
+  "gating": "none",
+  "accessible_with_local_token": true,
+  "access_check": {
+    "date": "2026-11-21",
+    "method": "HfApi.model_info + HTTP HEAD (huggingface_hub.get_hf_file_metadata) with the local HF token on config.json and the first safetensors shard (200 = accessible, 401/403 raise)",
+    "config_json_status": 200,
+    "first_shard": "model-00001-of-00006.safetensors",
+    "first_shard_status": 200
+  },
+  "license": "mit",
+  "min_transformers": "4.47.0",
+  "min_transformers_note": "checkpoint config says 4.47.0 (Phi3ForCausalLM exists since 4.40); only 4.57.6 was actually run here",
+  "verified_transformers": "4.57.6",
+  "trust_remote_code": false,
+  "auto_class": "AutoModelForCausalLM (Phi3ForCausalLM)",
+  "thinking": "off",
+  "answer_mode": "cot",
+  "max_new": 512,
+  "sys_role": "system",
+  "effort": null,
+  "layer_path": "model.model.layers",
+  "layer_path_verified": {
+    "method": "AutoModelForCausalLM.from_config(real hub config) under accelerate.init_empty_weights (meta device); numerics of the 1-based convention on a tiny random model of the same HF class through sbx.core.Ctx (sbx/tests/test_adapters_misc.py)",
+    "meta_model_class": "Phi3ForCausalLM",
+    "layer_class": "Phi3DecoderLayer",
+    "len_layers": 40,
+    "num_hidden_layers": 40,
+    "transformers": "4.57.6",
+    "convention": "hidden_states[L] == output of layers[L-1] for 1 <= L < nl (exact); hidden_states[nl] is post final norm (avoid L = nl)",
+    "layer_output_type": "tensor",
+    "config_source": "official repo config.json (local HF cache)"
+  },
+  "checkpoint_key_check": {
+    "method": "keys of model.safetensors.index.json (after the class's _checkpoint_conversion_mapping) vs meta-device state_dict, transformers 4.57.6",
+    "checkpoint_keys": 243,
+    "model_keys": 243,
+    "missing_in_checkpoint": [],
+    "unexpected_in_checkpoint": [],
+    "declared_tied_missing": []
+  },
+  "num_layers": 40,
+  "hidden_size": 5120,
+  "hidden_size_location": "config.hidden_size",
+  "config": {
+    "num_attention_heads": 40,
+    "num_key_value_heads": 10,
+    "head_dim": 128,
+    "vocab_size": 100352,
+    "sliding_window": null,
+    "max_position_embeddings": 16384
+  },
+  "kv_bytes_per_token_full_attention": 204800,
+  "special_tokens": {
+    "<|im_start|>": 100264,
+    "<|im_sep|>": 100266,
+    "<|im_end|>": 100265,
+    "<|endoftext|>": 100257,
+    "<|dummy_85|>": 100349
+  },
+  "chat_template_sha256": "fe4120415a3858b8",
+  "est_prompt_tokens": {
+    "N": 112.0,
+    "E": 183.0,
+    "N_max": 259,
+    "E_max": 330,
+    "basis": "measured over data/questions_heldout_eval.jsonl (400 four-option bio questions) with the real tokenizer + adapter.build; long-context sets (labbench) are much longer"
+  },
+  "context_window": 16384,
+  "prompt_tokens_by_set": {
+    "gpqa_biology": {
+      "n": 78,
+      "mean": 294,
+      "max": 2798,
+      "n_over_context": 0
+    },
+    "gpqa_control": {
+      "n": 150,
+      "mean": 222,
+      "max": 528,
+      "n_over_context": 0
+    },
+    "labbench_cloningscenarios": {
+      "n": 33,
+      "mean": 5947,
+      "max": 26364,
+      "n_over_context": 1
+    },
+    "labbench_litqa2": {
+      "n": 199,
+      "mean": 93,
+      "max": 149,
+      "n_over_context": 0
+    },
+    "labbench_protocolqa": {
+      "n": 108,
+      "mean": 1824,
+      "max": 4697,
+      "n_over_context": 0
+    },
+    "labbench_seqqa": {
+      "n": 200,
+      "mean": 743,
+      "max": 4440,
+      "n_over_context": 0
+    },
+    "mmlupro_biology": {
+      "n": 200,
+      "mean": 230,
+      "max": 784,
+      "n_over_context": 0
+    },
+    "questions_heldout_eval": {
+      "n": 400,
+      "mean": 111,
+      "max": 259,
+      "n_over_context": 0
+    },
+    "wmdp_train": {
+      "n": 1073,
+      "mean": 120,
+      "max": 788,
+      "n_over_context": 0
+    },
+    "basis": "framing N, real tokenizer + adapter.build over data/hard/*.jsonl, data/questions_heldout_eval.jsonl, data/wmdp_train.jsonl; n_over_context counts prompts with prompt_tokens + max_new > context_window"
+  },
+  "est_tokens_per_question": 250,
+  "est_tokens_per_question_basis": "estimate: Phi-4 is chatty; brief CoT incl. option-by-option remarks; NOT measured. Replace with the mean generated length from the first GPU run; outputs longer than max_new are truncated and count as unparsed.",
+  "template_notes": "ChatML-style with <|im_sep|>: <|im_start|>{role}<|im_sep|>{content}<|im_end|>; prompt ends <|im_start|>assistant<|im_sep|> (last token <|im_sep|>, id 100266). No BOS is emitted by the template and none is added by the tokenizer. No default system prompt: N has no system turn, framing text is a normal system turn. pad = <|dummy_85|> (100349), eos <|im_end|>; generation_config stops on both <|im_end|> and <|endoftext|>.",
+  "known_issues": [
+    "CONTEXT WINDOW: 1 of 33 prompts in labbench_cloningscenarios (longest 26364 tokens, framing N) plus max_new=512 exceed the model's 16384-token window: skip or truncate them for this model.",
+    "Tokenizer default padding_side is 'right' (the base loader sets 'left').",
+    "Strict format following may be weaker than for other 14B-class chat models: the Phi-4-reasoning README's comparison table lists IFEval Strict = 62.3 for Phi-4 (GPT-4o 81.8, Phi-4-reasoning 83.4). The robust parser handles '**Answer:** B', 'Answer: (B)', 'the answer is B' and \\boxed{B}, but the real output style of this model under the 'Answer: <letter>' instruction is UNVERIFIED (no GPU run).",
+    "Output format/length on the real model is UNVERIFIED (no GPU available when this card was written): max_new=512 for a 'brief' CoT is a guess; check the parse rate of baseline N on a few dozen questions and raise max_new (768/1024) if > ~3% of outputs are truncated without an 'Answer:' line.",
+    "est_tokens_per_question is an estimate from typical behaviour of the model family, not a measurement."
+  ],
+  "recommended_gpu": "1x 40-48 GB GPU (A100-40G/L40S/A6000) or any 80 GB card",
+  "hf_revision": "2db69c1c3e91a05d2c64a3185acfbaf36f744e25",
+  "hf_last_modified": "2026-07-14",
+  "verification_date": "2026-11-21"
+}

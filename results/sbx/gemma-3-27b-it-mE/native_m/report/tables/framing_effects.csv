@@ -1,0 +1,2 @@
+model,eval,framing,ref,n,acc_ref,acc,delta,b,c,p_two,p_lower,p_two_holm
+gemma-3-27b-it,wmdp_bio,E,N,120,0.775,0.5,-0.275,10,43,5.550520889130439e-06,2.7752604445652196e-06,5.550520889130439e-06

@@ -1,0 +1,2 @@
+model,eval,framing,ref,n,acc_ref,acc,delta,b,c,p_two,p_lower,p_two_holm
+gemma-3-27b-it,wmdp_bio,nat_goal_doc,N,120,0.775,0.35833333333333334,-0.4166666666666667,9,59,3.914123197106857e-10,1.9570615985534286e-10,3.914123197106857e-10

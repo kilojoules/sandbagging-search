@@ -1,0 +1,185 @@
+{
+  "key": "ministral-3-14b",
+  "repo": "mistralai/Ministral-3-14B-Instruct-2512-BF16",
+  "family": "mistral",
+  "adapter": "sbx.adapters.mistral.Ministral3",
+  "params_b": 13.945,
+  "active_params_b": 13.945,
+  "params_note": "dense; includes a pixtral vision tower + projector (~0.44 B); meta-device parameter count 13.945 B == safetensors total",
+  "text_params_b": null,
+  "dtype": "bfloat16",
+  "dtype_note": "bf16 (the -BF16 sibling repo; the main repo is FP8)",
+  "weights_gb_bf16": 27.89,
+  "weights_gb_4bit_est": null,
+  "weights_gb_note": "decimal GB; bf16 = 2 x params",
+  "download_gb": 27.89,
+  "fits_single_80gb": true,
+  "fits_single_80gb_how": "bf16",
+  "fits_single_80gb_detail": "bf16 (the -BF16 repo): 27.9 GB; the FP8 main repo is ~15.7 GB but needs FP8 kernels (or dequantize=True)",
+  "hidden_last_80gb": {
+    "fits_hard_pool": true,
+    "bytes_per_prompt_token": 845824,
+    "kv_cache_alive": true,
+    "free_gib_after_weights": 52.4,
+    "max_tokens_per_chunk": 66552,
+    "exceeds_core_token_budget": false,
+    "hard_pool_measured": {
+      "n_prompts": 281,
+      "max_prompt_chars": 7500,
+      "longest_prompt_tokens": 3019,
+      "chunks_over_budget": {
+        "N": 0,
+        "E": 0
+      },
+      "worst_chunk_gib": 11.0
+    },
+    "verdict": "fits: no hidden_last chunk of the hard / wmdp / nonbio direction pools exceeds the free memory of an 80 GB card (a prompt above max_tokens_per_chunk tokens would).",
+    "basis": "ESTIMATE from config numbers, not a GPU measurement. sbx.core.Ctx.hidden_last / neutral_stats call model(**enc, output_hidden_states=True): per prompt token the hidden states of all layers ((num_layers+1) * hidden_size * 2 B), the full-sequence logits (vocab_size * 2 B) and, only if the model config has use_cache=true (forward(use_cache=None) then builds a cache; kv_cache_alive says so, and all OLMo configs ship use_cache=false), the KV cache (2 * layers * kv_heads * head_dim * 2 B; an upper bound for sliding-window layers) are alive at once, and bytes_per_prompt_token is their sum. core.batches() budgets KV, prefill attention and a 14000-token chunk but not this cost. free_gib_after_weights = 79.2 GiB (an 80 GB card) - 0.8 GiB (CUDA context) - bf16 weights. max_tokens_per_chunk = free / bytes_per_prompt_token: a chunk of b prompts padded to length p holds b*p tokens, and a single prompt above the limit cannot be processed at all. hard_pool_measured: core.batches(max_new=0, cap=16, free) over the direction-pool prompts evals.get_pool()['hard'] under framings N and E with this adapter and the real tokenizer; chunks_over_budget counts chunks whose estimated peak exceeds the free memory. Measured 2026-11-22; the pool follows sbx/evals.py (n_prompts and max_prompt_chars identify it)."
+  },
+  "default_quant": null,
+  "gated": false,
+  "gating": "none",
+  "accessible_with_local_token": true,
+  "access_check": {
+    "date": "2026-11-21",
+    "method": "HfApi.model_info + HTTP HEAD (huggingface_hub.get_hf_file_metadata) with the local HF token on config.json and the first safetensors shard (200 = accessible, 401/403 raise)",
+    "config_json_status": 200,
+    "first_shard": "model-00001-of-00006.safetensors",
+    "first_shard_status": 200
+  },
+  "license": "apache-2.0",
+  "min_transformers": "5.0.0",
+  "min_transformers_note": "text model_type 'ministral3' is absent from the 4.57.0-4.57.6 wheels and present in 5.0.0 (checked); checkpoint config says 5.0.0.dev0",
+  "verified_transformers": "5.0.0 (config, meta build, tiny-model pipeline, tokenizer/template); 4.57.6 for tokenizer/template only",
+  "trust_remote_code": false,
+  "auto_class": "AutoModelForImageTextToText (Mistral3ForConditionalGeneration with a ministral3 text model); needs transformers>=5.0",
+  "thinking": "off",
+  "answer_mode": "cot",
+  "max_new": 512,
+  "sys_role": "system",
+  "effort": null,
+  "layer_path": "model.model.language_model.layers",
+  "layer_path_verified": {
+    "method": "transformers 5.0.0 (read-only use of an existing scratch venv): AutoModelForImageTextToText.from_config(real hub config) on the torch meta device; plus a tiny random model of the same classes through sbx.core.Ctx. NOT buildable with the project's transformers 4.57.6.",
+    "meta_model_class": "Mistral3ForConditionalGeneration",
+    "layer_class": "Ministral3DecoderLayer(expected)",
+    "len_layers": 40,
+    "num_hidden_layers": 40,
+    "transformers": "5.0.0",
+    "convention": "hidden_states[L] == output of layers[L-1] for 1 <= L < nl (exact on the tiny model); hidden_states[nl] is post final norm (avoid L = nl)",
+    "layer_output_type": "tensor",
+    "config_source": "official repo config.json"
+  },
+  "checkpoint_key_check": {
+    "method": "same check as the other cards but run with transformers 5.0.0 (read-only use of an existing scratch venv, torch meta device)",
+    "checkpoint_keys": 585,
+    "model_keys": 585,
+    "missing_in_checkpoint": [],
+    "unexpected_in_checkpoint": [],
+    "declared_tied_missing": [],
+    "note": "585/585 keys match after _checkpoint_conversion_mapping; lm_head is not tied in the checkpoint (tie_word_embeddings=false)"
+  },
+  "num_layers": 40,
+  "hidden_size": 5120,
+  "hidden_size_location": "config.text_config.hidden_size",
+  "config": {
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "vocab_size": 131072,
+    "sliding_window": null,
+    "max_position_embeddings": 262144
+  },
+  "kv_bytes_per_token_full_attention": 163840,
+  "special_tokens": {
+    "<s>": 1,
+    "</s>": 2,
+    "<pad>": 11,
+    "[INST]": 3,
+    "[/INST]": 4,
+    "[SYSTEM_PROMPT]": 17,
+    "[/SYSTEM_PROMPT]": 18
+  },
+  "chat_template_sha256": "2f545122222db8bb",
+  "est_prompt_tokens": {
+    "N": 646.9,
+    "E": 713.9,
+    "N_max": 778,
+    "E_max": 845,
+    "basis": "measured over data/questions_heldout_eval.jsonl (400 four-option bio questions) with the real tokenizer + adapter.build; long-context sets (labbench) are much longer"
+  },
+  "context_window": 262144,
+  "prompt_tokens_by_set": {
+    "gpqa_biology": {
+      "n": 78,
+      "mean": 830,
+      "max": 3513,
+      "n_over_context": 0
+    },
+    "gpqa_control": {
+      "n": 150,
+      "mean": 755,
+      "max": 1067,
+      "n_over_context": 0
+    },
+    "labbench_cloningscenarios": {
+      "n": 33,
+      "mean": 6746,
+      "max": 28124,
+      "n_over_context": 0
+    },
+    "labbench_litqa2": {
+      "n": 199,
+      "mean": 631,
+      "max": 703,
+      "n_over_context": 0
+    },
+    "labbench_protocolqa": {
+      "n": 108,
+      "mean": 2456,
+      "max": 5479,
+      "n_over_context": 0
+    },
+    "labbench_seqqa": {
+      "n": 200,
+      "mean": 1316,
+      "max": 5306,
+      "n_over_context": 0
+    },
+    "mmlupro_biology": {
+      "n": 200,
+      "mean": 767,
+      "max": 1274,
+      "n_over_context": 0
+    },
+    "questions_heldout_eval": {
+      "n": 400,
+      "mean": 646,
+      "max": 778,
+      "n_over_context": 0
+    },
+    "wmdp_train": {
+      "n": 1073,
+      "mean": 655,
+      "max": 1278,
+      "n_over_context": 0
+    },
+    "basis": "framing N, real tokenizer + adapter.build over data/hard/*.jsonl, data/questions_heldout_eval.jsonl, data/wmdp_train.jsonl; n_over_context counts prompts with prompt_tokens + max_new > context_window"
+  },
+  "est_tokens_per_question": 200,
+  "est_tokens_per_question_basis": "estimate: brief visible CoT of a non-reasoning instruct model; NOT measured. Replace with the mean generated length from the first GPU run; outputs longer than max_new are truncated and count as unparsed.",
+  "template_notes": "Tekken V7 string via the repo's own HF chat template (same format as Mistral Small). The template's default system prompt contains UNFILLED '{today}'/'{yesterday}' placeholders; the adapter fills them (pinned 2025-12-02/01), always renders an explicit system turn = default [+ blank line + framing]. The default prompt starts 'You are Ministral-3-14B-Instruct-2512, ...' (539 tokens). Last prompt token = [/INST]. Design choice: framing text is APPENDED to the model's default system prompt (default + blank line + framing), so N-vs-framing contrasts differ only by the framing paragraph; set the class attribute adapter.keep_default_system = False to get the vendor template's native semantics (framing REPLACES the default system prompt; N is unchanged).",
+  "known_issues": [
+    "NOT LOADABLE with the project's transformers 4.57.6: text_config.model_type 'ministral3' exists only in transformers>=5.0 (verified: absent from 4.57.0-4.57.6 wheels, present in 5.0.0). Adapter.load() raises a clear RuntimeError on older versions. Layer path and the 1-based convention were verified with transformers 5.0.0 (meta-device config build + tiny random model through sbx.core.Ctx), prompt rendering with both 4.57.6 and 5.0.0; the real checkpoint was never loaded.",
+    "The adapter points at mistralai/Ministral-3-14B-Instruct-2512-BF16 (bf16 weights, identical chat template); the main repo is FP8 (compressed fine-grained fp8, static activation scheme) and would perturb activations.",
+    "In transformers 5 the tokenizer class is TokenizersBackend and fix_mistral_regex is no longer accepted; load_mistral_tokenizer handles both and verifies the tekken pre-tokenizer regex.",
+    "Repo holds consolidated.safetensors + HF shards (55.8 GB total); the HF shards are 27.9 GB.",
+    "Output format/length on the real model is UNVERIFIED (no GPU available when this card was written): max_new=512 for a 'brief' CoT is a guess; check the parse rate of baseline N on a few dozen questions and raise max_new (768/1024) if > ~3% of outputs are truncated without an 'Answer:' line.",
+    "est_tokens_per_question is an estimate from typical behaviour of the model family, not a measurement."
+  ],
+  "recommended_gpu": "1x 40-80 GB GPU (bf16 27.9 GB)",
+  "hf_revision": "3cea74c1ebaf5ce5f5a2553de470e2ceab825142",
+  "hf_last_modified": "2026-07-15",
+  "verification_date": "2026-11-21",
+  "fp8_repo": "mistralai/Ministral-3-14B-Instruct-2512"
+}

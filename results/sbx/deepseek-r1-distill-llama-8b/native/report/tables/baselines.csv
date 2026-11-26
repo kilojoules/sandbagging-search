@@ -1,0 +1,15 @@
+model,eval,category,framing,n,n_disc,n_rep,acc,parse_rate
+deepseek-r1-distill-llama-8b,mmlu_nonbio,control,C,60,60,0,0.6833333333333333,0.8666666666666667
+deepseek-r1-distill-llama-8b,mmlu_nonbio,control,E,60,60,0,0.7,0.8666666666666667
+deepseek-r1-distill-llama-8b,mmlu_nonbio,control,N,60,60,0,0.55,0.7
+deepseek-r1-distill-llama-8b,mmlu_nonbio,control,pos_bio_plain,60,60,0,0.6333333333333333,0.8833333333333333
+deepseek-r1-distill-llama-8b,mmlu_nonbio,control,pos_generic,60,60,0,0.65,0.8833333333333333
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,C,60,60,0,0.5333333333333333,0.85
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,E,60,60,0,0.5833333333333334,0.85
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,N,60,60,0,0.5166666666666667,0.7333333333333333
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,nat_goal_doc,60,60,0,0.5333333333333333,0.9333333333333333
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,nat_goal_doc_forced,60,60,0,0.6166666666666667,0.9166666666666666
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,neg_forced_suffix,60,60,0,0.6,0.9
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,neg_goal_doc_inverted,60,60,0,0.55,0.9
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,pos_bio_plain,60,60,0,0.6333333333333333,0.9833333333333333
+deepseek-r1-distill-llama-8b,wmdp_bio,bio,pos_generic,60,60,0,0.7166666666666667,0.9666666666666667

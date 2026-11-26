@@ -1,0 +1,5 @@
+model,framing,direction,kind,intervention,layers,strength,seed,n_bio_evals,mean_delta_bio,min_delta_bio,max_delta_bio,n_ctrl_evals,mean_delta_ctrl
+gptoss-120b,E,EXPERT,persona,add,15,-0.4,0,5,0.14642515872633988,0.007042253521126761,0.3741496598639456,0,
+gptoss-120b,E,LIE,honesty,proj0,10-28,0.0,0,5,0.23432898378696337,0.136986301369863,0.4217687074829932,0,
+gptoss-120b,N,EXPERT,persona,add,15,-0.4,0,4,-0.026663918678371895,-0.12162162162162163,0.041666666666666664,0,
+gptoss-120b,N,LIE,honesty,proj0,10-28,0.0,0,5,0.009376540827920337,-0.04225352112676056,0.0821917808219178,0,

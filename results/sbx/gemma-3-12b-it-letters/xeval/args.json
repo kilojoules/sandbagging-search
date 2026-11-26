@@ -1,0 +1,135 @@
+{
+ "model": "gemma-3-12b-it",
+ "repo": null,
+ "quant": null,
+ "answer_mode": "letters",
+ "out": "results/sbx/gemma-3-12b-it-letters/xeval",
+ "preset": "steer",
+ "stages": [
+  "behavior",
+  "steer"
+ ],
+ "evals": [
+  "gpqa_bio",
+  "labbench_litqa2",
+  "labbench_protocolqa",
+  "labbench_seqqa",
+  "mmlupro_bio",
+  "supergpqa_bio",
+  "medxpertqa_text",
+  "medqa_usmle",
+  "medmcqa_bio",
+  "mmlu_bio_all",
+  "wmdp_chem",
+  "wmdp_cyber"
+ ],
+ "splits": [
+  "disc",
+  "rep"
+ ],
+ "grid_splits": [
+  "disc",
+  "rep"
+ ],
+ "max_per_split": 150,
+ "b_evals": [],
+ "b_splits": [],
+ "framings": [
+  "N",
+  "E"
+ ],
+ "max_new": null,
+ "gen_cap": 64,
+ "max_minutes": 40.0,
+ "save_texts": "baseline",
+ "skip_rerun": true,
+ "recipes": [
+  "sandbag_bio"
+ ],
+ "import_old_dirs": null,
+ "n_pairs": 600,
+ "rebuild_dirs": false,
+ "strict_dirs": false,
+ "skip_refusal_validation": false,
+ "seed": 1234,
+ "rand_seeds": 5,
+ "layer_sets": [
+  "20"
+ ],
+ "dir_names": [
+  "REF"
+ ],
+ "interventions": [
+  "add"
+ ],
+ "strengths": [
+  -0.4
+ ],
+ "add_multilayer": false,
+ "steer_framings": [
+  "E",
+  "N"
+ ],
+ "steer_evals": [
+  "gpqa_bio",
+  "labbench_litqa2",
+  "labbench_protocolqa",
+  "labbench_seqqa",
+  "mmlupro_bio",
+  "supergpqa_bio",
+  "medxpertqa_text",
+  "medqa_usmle",
+  "medmcqa_bio",
+  "mmlu_bio_all",
+  "wmdp_chem",
+  "wmdp_cyber"
+ ],
+ "control_evals": [
+  "mmlu_nonbio"
+ ],
+ "rand_ctrl": 0,
+ "rand_for": [
+  "B"
+ ],
+ "dir_layers": "",
+ "mask_massive": 20.0,
+ "explicit_framing": "E",
+ "kprobe_train": 400,
+ "xevals": [
+  "mmlupro_bio",
+  "gpqa_bio"
+ ],
+ "cand_delta": 0.02,
+ "cand_p": 0.05,
+ "max_candidates": 24,
+ "noise_evals": [
+  "wmdp_bio",
+  "mmlu_nonbio"
+ ],
+ "noise_framings": [
+  "N",
+  "E"
+ ],
+ "noise_kinds": [
+  "act_fixed"
+ ],
+ "noise_layers": "auto1",
+ "noise_sigmas_act": [
+  0.05,
+  0.1,
+  0.2,
+  0.4
+ ],
+ "noise_sigmas_weight": [
+  0.01,
+  0.02,
+  0.04,
+  0.08,
+  0.16,
+  0.32
+ ],
+ "noise_include": "default",
+ "noise_seeds": 3,
+ "nl": null,
+ "dry_run": false
+}

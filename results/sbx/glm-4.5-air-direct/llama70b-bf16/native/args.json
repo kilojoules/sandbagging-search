@@ -1,0 +1,112 @@
+{
+ "model": "llama-3.3-70b-instruct",
+ "repo": "unsloth/Llama-3.3-70B-Instruct",
+ "quant": "bf16",
+ "answer_mode": "native",
+ "out": "results/sbx/glm-4.5-air-direct/llama70b-bf16/native",
+ "preset": "steer",
+ "stages": [
+  "behavior",
+  "steer"
+ ],
+ "evals": [
+  "wmdp_bio"
+ ],
+ "splits": [
+  "disc"
+ ],
+ "grid_splits": [
+  "disc"
+ ],
+ "max_per_split": 120,
+ "b_evals": [],
+ "b_splits": [],
+ "framings": [
+  "N",
+  "E"
+ ],
+ "max_new": null,
+ "gen_cap": 128,
+ "max_minutes": 30.0,
+ "save_texts": "baseline",
+ "skip_rerun": true,
+ "recipes": [
+  "sandbag_bio"
+ ],
+ "import_old_dirs": null,
+ "n_pairs": 600,
+ "rebuild_dirs": false,
+ "strict_dirs": false,
+ "skip_refusal_validation": false,
+ "seed": 1234,
+ "rand_seeds": 5,
+ "layer_sets": [
+  "22-62"
+ ],
+ "dir_names": [
+  "H"
+ ],
+ "interventions": [
+  "proj0"
+ ],
+ "strengths": [
+  -0.2
+ ],
+ "add_multilayer": false,
+ "steer_framings": [
+  "E",
+  "N"
+ ],
+ "steer_evals": [
+  "wmdp_bio"
+ ],
+ "control_evals": [
+  "mmlu_nonbio"
+ ],
+ "rand_ctrl": 1,
+ "rand_for": [
+  "A",
+  "H"
+ ],
+ "dir_layers": "",
+ "mask_massive": 0.0,
+ "explicit_framing": "E",
+ "kprobe_train": 400,
+ "xevals": [
+  "mmlupro_bio",
+  "gpqa_bio"
+ ],
+ "cand_delta": 0.02,
+ "cand_p": 0.05,
+ "max_candidates": 24,
+ "noise_evals": [
+  "wmdp_bio",
+  "mmlu_nonbio"
+ ],
+ "noise_framings": [
+  "N",
+  "E"
+ ],
+ "noise_kinds": [
+  "act_fixed"
+ ],
+ "noise_layers": "auto1",
+ "noise_sigmas_act": [
+  0.05,
+  0.1,
+  0.2,
+  0.4
+ ],
+ "noise_sigmas_weight": [
+  0.01,
+  0.02,
+  0.04,
+  0.08,
+  0.16,
+  0.32
+ ],
+ "noise_include": "default",
+ "noise_seeds": 3,
+ "nl": null,
+ "dry_run": false
+}

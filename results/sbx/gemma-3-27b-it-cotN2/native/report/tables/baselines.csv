@@ -1,0 +1,2 @@
+model,eval,category,framing,n,n_disc,n_rep,acc,parse_rate
+gemma-3-27b-it,wmdp_bio,bio,N,593,291,302,0.7369308600337268,1.0

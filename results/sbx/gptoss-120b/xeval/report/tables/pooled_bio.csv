@@ -1,0 +1,3 @@
+model,framing,direction,kind,intervention,layers,strength,seed,n_evals,evals,evals_dropped,n_shared,n_disc,delta_disc,p_disc,p_disc_holm,candidate,n_rep,delta_rep,p_rep,p_rep_holm,status
+gptoss-120b,N,EXPERT,persona,add,15,-0.4,0,4,"gpqa_bio,labbench_litqa2,labbench_protocolqa,labbench_seqqa",,0,190,-0.03684210526315789,0.8553781264454897,0.8679394004284404,False,160,0.01875,0.3679394004284404,,NO_EFFECT
+gptoss-120b,N,LIE,honesty,proj0,10-28,0.0,0,5,"gpqa_bio,labbench_litqa2,labbench_protocolqa,labbench_seqqa,mmlupro_bio",,0,260,0.007692307692307693,0.4339697002142202,0.8679394004284404,False,228,-0.0043859649122807015,0.6320605995715596,,NO_EFFECT

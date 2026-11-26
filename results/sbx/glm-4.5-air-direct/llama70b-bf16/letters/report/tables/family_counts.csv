@@ -1,0 +1,5 @@
+family,role,n_cells,n_tested,n_candidates,n_replicated,n_robust
+confirmatory,test,66,66,0,0,0
+control_eval,control_eval,36,36,0,0,0
+positive_control,positive_control,66,66,50,0,0
+random_control,random_control,36,36,0,0,0

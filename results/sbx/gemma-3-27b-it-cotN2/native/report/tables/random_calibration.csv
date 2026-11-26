@@ -1,0 +1,2 @@
+model,intervention,n_cells,mean_delta,n_raw_p_below_alpha,n_gain_ge_min_delta,n_candidates
+gemma-3-27b-it,cap,3,0.01573917931422147,0,0,0

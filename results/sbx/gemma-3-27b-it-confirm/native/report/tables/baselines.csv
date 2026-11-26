@@ -1,0 +1,9 @@
+model,eval,category,framing,n,n_disc,n_rep,acc,parse_rate
+gemma-3-27b-it,mmlu_nonbio,control,N,294,154,140,0.8503401360544217,0.9931972789115646
+gemma-3-27b-it,mmlu_nonbio,control,nat_goal_doc,294,154,140,0.7040816326530612,0.9897959183673469
+gemma-3-27b-it,mmlu_nonbio,control,nat_goal_doc_forced,294,154,140,0.7448979591836735,1.0
+gemma-3-27b-it,mmlu_nonbio,control,neg_goal_doc_inverted,294,154,140,0.8095238095238095,0.9795918367346939
+gemma-3-27b-it,wmdp_bio,bio,N,593,291,302,0.7369308600337268,1.0
+gemma-3-27b-it,wmdp_bio,bio,nat_goal_doc,593,291,302,0.30185497470489037,1.0
+gemma-3-27b-it,wmdp_bio,bio,nat_goal_doc_forced,593,291,302,0.25295109612141653,1.0
+gemma-3-27b-it,wmdp_bio,bio,neg_goal_doc_inverted,593,291,302,0.7352445193929174,0.9983136593591906

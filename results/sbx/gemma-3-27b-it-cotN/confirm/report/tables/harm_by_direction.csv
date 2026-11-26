@@ -1,0 +1,2 @@
+model,framing,direction,kind,intervention,n_configs,mean_delta_bio,median_delta_bio,worst_delta_bio,best_delta_bio,share_harmful,mean_delta_ctrl
+gemma-3-27b-it,N,CF,other,cap,1,0.02023608768971332,0.02023608768971332,0.02023608768971332,0.02023608768971332,0.0,

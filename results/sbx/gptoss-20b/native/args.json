@@ -1,0 +1,109 @@
+{
+ "model": "gptoss-20b",
+ "repo": null,
+ "quant": null,
+ "answer_mode": "native",
+ "out": "results/sbx/gptoss-20b/native",
+ "preset": "noise",
+ "stages": [
+  "noise"
+ ],
+ "evals": [
+  "wmdp_bio",
+  "mmlu_nonbio"
+ ],
+ "splits": [
+  "disc"
+ ],
+ "grid_splits": [
+  "disc"
+ ],
+ "max_per_split": 120,
+ "b_evals": [],
+ "b_splits": [],
+ "framings": [
+  "N",
+  "E"
+ ],
+ "max_new": null,
+ "gen_cap": 96,
+ "max_minutes": 66.0,
+ "save_texts": "baseline",
+ "skip_rerun": true,
+ "recipes": [
+  "sandbag_bio"
+ ],
+ "import_old_dirs": null,
+ "n_pairs": 600,
+ "rebuild_dirs": false,
+ "strict_dirs": false,
+ "skip_refusal_validation": false,
+ "seed": 1234,
+ "rand_seeds": 5,
+ "layer_sets": [
+  "auto1",
+  "autoN"
+ ],
+ "dir_names": [
+  "B",
+  "A"
+ ],
+ "interventions": [
+  "cap",
+  "proj0",
+  "add"
+ ],
+ "strengths": [
+  -0.1,
+  -0.2,
+  -0.4
+ ],
+ "add_multilayer": false,
+ "steer_framings": [
+  "E",
+  "N"
+ ],
+ "steer_evals": [
+  "wmdp_bio"
+ ],
+ "control_evals": [
+  "mmlu_nonbio"
+ ],
+ "rand_ctrl": 3,
+ "rand_for": [
+  "B"
+ ],
+ "explicit_framing": "E",
+ "kprobe_train": 400,
+ "xevals": [],
+ "cand_delta": 0.02,
+ "cand_p": 0.05,
+ "max_candidates": 24,
+ "noise_evals": [
+  "wmdp_bio",
+  "mmlu_nonbio"
+ ],
+ "noise_framings": [
+  "N",
+  "pos_bio_plain"
+ ],
+ "noise_kinds": [
+  "act_fixed",
+  "weight"
+ ],
+ "noise_layers": "auto1",
+ "noise_sigmas_act": [
+  0.1,
+  0.2,
+  0.4
+ ],
+ "noise_sigmas_weight": [
+  0.02,
+  0.04,
+  0.08
+ ],
+ "noise_include": "attn",
+ "noise_seeds": 2,
+ "nl": null,
+ "dry_run": false
+}

@@ -1,0 +1,12 @@
+{
+ "cells": 0,
+ "minutes": 23.9,
+ "warnings": [
+  "requested directions not built: ['B', 'A'] (built: ['CF', 'CM', 'CS'])"
+ ],
+ "directions": [
+  "CF",
+  "CM",
+  "CS"
+ ]
+}

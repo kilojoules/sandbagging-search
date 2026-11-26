@@ -1,0 +1,46 @@
+# Allowlist: everything is ignored unless it is re-included below, so a new file or directory is never published by accident.
+/*
+!/.gitignore
+!/README.md
+!/sbx/
+!/scripts/
+!/docs/
+!/data/
+!/results/
+!/figures/
+
+# data/: only the provenance note; benchmark question files are not redistributed (GPQA asks not to be posted; see data/README.md)
+/data/*
+!/data/README.md
+
+# sbx/: code and design docs. The runbook is written for an account-specific cloud setup and is not published.
+/sbx/RUNBOOK.md
+
+# scripts/: cloud orchestration scripts tied to a private GPU account
+/scripts/pod_launch.sh
+/scripts/pod_collect.sh
+/scripts/pod_destroy.sh
+/scripts/pod_sync.sh
+/scripts/pull_live.sh
+
+# results/: the report and the sbx runs. Not published: early pilot outputs (pod2..pod5, pod_final, 9B pilot; they contain raw question text)
+# and the live mirror of the pods, except the one run that exists only there.
+/results/*
+!/results/FINAL_REPORT.md
+!/results/default_bounds.md
+!/results/default_flip_counts.md
+!/results/headline_flip_counts.md
+!/results/overview_table.md
+!/results/sbx/
+!/results/sbx_live/
+/results/sbx_live/*
+!/results/sbx_live/qwen3-8b-think/
+
+# anywhere: raw model outputs (they quote the benchmark questions), steering directions (about 470 MB), caches
+texts/
+dirs.npz
+cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store

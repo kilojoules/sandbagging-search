@@ -1,0 +1,2 @@
+model,n_records,n_baseline_cells,n_steered_cells,n_confirmatory_tested,n_candidates,n_replicated,n_ROBUST_HIT,n_UNCONTROLLED,n_GENERIC_GAIN,n_FORMAT_ARTIFACT,n_NOT_REPLICATED,n_DISCOVERY_ONLY,n_NO_EFFECT,best_delta_disc,best_cell,mean_delta_bio_ref
+gptoss-20b,241,83,156,66,0,0,0,0,0,0,0,0,66,0.025,wmdp_bio|N|REF|cap|L10|a0,-0.01111111111111111

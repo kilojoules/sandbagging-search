@@ -1,0 +1,4 @@
+model,framing,direction,kind,intervention,n_configs,mean_delta_bio,median_delta_bio,worst_delta_bio,best_delta_bio,share_harmful,mean_delta_ctrl
+gemma-3-27b-it,nat_goal_doc,CF,other,cap,2,0.23750000000000002,0.23750000000000002,0.075,0.4,0.0,
+gemma-3-27b-it,nat_goal_doc,CM,other,cap,2,0.18333333333333332,0.18333333333333332,0.016666666666666666,0.35,0.0,
+gemma-3-27b-it,nat_goal_doc,rand*,random,cap,4,-0.025,-0.025,-0.05,0.0,0.25,

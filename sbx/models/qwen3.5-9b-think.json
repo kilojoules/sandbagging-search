@@ -1,0 +1,203 @@
+{
+  "key": "qwen3.5-9b-think",
+  "repo": "Qwen/Qwen3.5-9B",
+  "family": "qwen3.5",
+  "adapter": "sbx.adapters.qwen.Qwen35Think",
+  "hf_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "params_b": 9.65,
+  "active_params_b": 9.65,
+  "params_note": "dense model (all parameters active); checkpoint total includes vision tower + MTP head, text-only weights loaded by the adapter = 8.95 B",
+  "text_params_b": 8.95,
+  "dtype": "bfloat16",
+  "dtype_note": "bf16 (checkpoint dtype)",
+  "weights_gb_bf16": 17.91,
+  "weights_gb_4bit_est": 7.6,
+  "weights_gb_note": "decimal GB of the weights as loaded by the adapter (text-only); download_gb is the checkpoint size on the hub (19.31 GB, sum of safetensors files); 4bit = NF4 + double-quant estimate: 6.919 B quantisable linear params x 0.5159 B + remaining params in bf16 (estimate only; bitsandbytes loading not tested here)",
+  "download_gb": 19.31,
+  "fits_single_80gb": true,
+  "fits_single_80gb_how": "bf16",
+  "fits_single_80gb_detail": "bf16: yes (17.91 GB of weights loaded = 16.7 GiB of ~79.7 GiB usable on an 80 GB card, ~62 GiB left for KV cache + activations; core KV formula 128 KiB/token). sbx batching (budgets: 0.37 x free for KV, 14000 prompt tokens, cap 64) then runs ~46 concurrent sequences at 300-token prompts + max_new=1800. 4-bit would fit ~7.6 GB but is slower per token and changes the activations the directions are built from - not recommended. Scope: this is the GENERATION path (Ctx.gen / Ctx.run); direction building (Ctx.hidden_last / neutral_stats) has its own budget, see direction_building_memory.",
+  "direction_building_memory": {
+    "applies_to": "sbx.core.Ctx.hidden_last and Ctx.neutral_stats (every sbx.dirs recipe). Both run ONE full forward over the whole prompt with output_hidden_states=True and without logits_to_keep, so all num_layers+1 hidden-state tensors AND the logits of every prompt position are alive at once. Generation (Ctx.gen / Ctx.run) is not affected: generate() forces logits_to_keep=1 and keeps no hidden states.",
+    "formula": "bytes per prompt token = (num_layers + 1) * hidden_size * 2 + vocab_size * 2 (bf16 hidden states and logits). A lower bound: attention / MLP transients come on top. sbx batching caps a hidden_last batch at 14000 prompt tokens.",
+    "bytes_per_prompt_token": 766976,
+    "free_gb_after_weights": 67.67,
+    "free_gb_basis": "79.7 GiB usable on an 80 GB card (as in fits_single_80gb_detail) minus weights_gb_bf16, decimal GB",
+    "max_single_prompt_tokens_estimate": 88225,
+    "batch_14000_tokens_peak_gb": 10.74,
+    "longest_pool_prompt": {
+      "tokens_N": 2146,
+      "tokens_E": 2218,
+      "qid": "labbench_seqqa_0116",
+      "peak_gb_E": 1.7,
+      "basis": "evals.get_pool() (wmdp + hard + nonbio: 1174 questions on 2026-11-22, after the evals MAX_PROMPT_CHARS=7500 filter), this key's tokenizer and adapter.build, framings N and E"
+    },
+    "fits_longest_pool_prompt": true,
+    "longest_unfiltered_hard_prompt": {
+      "tokens_E": 25979,
+      "qid": "labbench_cloningscenarios_0026",
+      "peak_gb": 19.93,
+      "basis": "data/hard/*.jsonl as read before the evals filter (968 questions, framing E); this question is no longer in any pool, the raw file still has it"
+    },
+    "fits_longest_unfiltered_hard_prompt": true
+  },
+  "default_quant": null,
+  "gated": false,
+  "gating": "none (public repo)",
+  "accessible_with_local_token": true,
+  "access_check": {
+    "date": "2026-11-21",
+    "method": "HfApi.model_info(files_metadata=True) + HTTP HEAD (no redirect following, nothing downloaded) with the local HF token on config.json (redirects followed => 200) and the first safetensors shard (not followed: 302 = authorized redirect to the CDN, 403 = gated and access not granted)",
+    "config_json_status": 200,
+    "first_shard": "model.safetensors-00001-of-00004.safetensors",
+    "first_shard_status": 302,
+    "without_token": {
+      "config_json_status": 200,
+      "first_shard_status": 302
+    }
+  },
+  "license": "apache-2.0",
+  "license_notes": "Apache-2.0 (model card tag; LICENSE file in the repo).",
+  "min_transformers": "5.2.0",
+  "min_transformers_note": "qwen3_5 model code first appears in transformers 5.2.0 (absent in 5.0.0 and 5.1.0: verified from the wheels; 5.2.0 and 5.24.0 were run in a scratch venv with python3.11/torch 2.15). transformers 4.57.6 (the local env) raises ValueError: model type `qwen3_5` not recognized. Requires python>=3.10 and torch>=2.4.",
+  "verified_transformers": "5.2.0, 5.24.0 (tiny-model + meta checks in a scratch venv); 4.57.6 supports tokenizer/template rendering only",
+  "trust_remote_code": false,
+  "thinking": "on",
+  "answer_mode": "reasoning",
+  "max_new": 1800,
+  "sys_role": "system",
+  "effort": null,
+  "layer_path": "model.model.layers",
+  "layer_path_verified": {
+    "method": "transformers 5.2.0 AND 5.24.0 in an isolated scratch venv (python3.11, torch 2.15; NOT importable in the local py3.9/transformers-4.57.6 env): meta-device AutoModelForCausalLM.from_config(text_config) from the real config.json -> Qwen3_5ForCausalLM; text-only + vision + MTP parameter counts sum exactly to the HF API total; a tiny random composite checkpoint round-tripped through AutoModelForCausalLM.from_pretrained and adapter.load() / Ctx.run / hidden_last / core.Hooks",
+    "meta_model_class": "Qwen3_5ForCausalLM",
+    "layer_class": "Qwen3_5DecoderLayer",
+    "len_layers": 32,
+    "num_hidden_layers": 32,
+    "text_params": 8953803264,
+    "vision_params": 456010480,
+    "mtp_params": 243290624,
+    "hf_api_param_count": 9653104368,
+    "param_count_matches_hf_api": true,
+    "transformers": "5.2.0 and 5.24.0 (scratch venv)",
+    "convention": "hidden_states[L] == output of layers[L-1] for 1 <= L < nl (exact); hidden_states[nl] is post final norm (avoid L = nl)",
+    "layer_output_type": "tensor",
+    "config_source": "official repo config.json",
+    "verifiable_in_local_env": false,
+    "checkpoint_key_check": {
+      "source": "model.safetensors.index.json of the real repo (775 tensor names; no weights downloaded) vs the parameter names of the text-only Qwen3_5ForCausalLM built on the meta device (transformers 5.2.0), after the loader's 'model.language_model.' -> 'model.' mapping",
+      "model_keys": 427,
+      "checkpoint_text_keys": 427,
+      "missing_in_checkpoint": [],
+      "unexpected_text_keys": [],
+      "ignored_checkpoint_prefixes": [
+        "model.visual.*",
+        "mtp.*"
+      ],
+      "result": "exact match"
+    }
+  },
+  "num_layers": 32,
+  "hidden_size": 4096,
+  "hidden_size_location": "config.text_config.hidden_size (composite checkpoint config); Qwen3_5ForCausalLM.config is the text config",
+  "config": {
+    "num_attention_heads": 16,
+    "num_key_value_heads": 4,
+    "head_dim": 256,
+    "vocab_size": 248320,
+    "max_position_embeddings": 262144,
+    "tie_word_embeddings": false
+  },
+  "architecture": "Qwen3_5ForConditionalGeneration checkpoint (model_type qwen3_5; text sub-model qwen3_5_text): 24 Gated-DeltaNet linear-attention + 8 full-attention layers (full_attention_interval=4), 0.456 B vision tower and 0.243 B MTP head stored but not instantiated by AutoModelForCausalLM (text-only Qwen3_5ForCausalLM, 8.954 B params)",
+  "kv_bytes_per_token_full_attention": 131072,
+  "kv_bytes_per_token_true": 32768,
+  "auto_class": "AutoModelForCausalLM -> Qwen3_5ForCausalLM (text-only; checkpoint class Qwen3_5ForConditionalGeneration)",
+  "est_max_batch_80gb_prompt300": 46,
+  "est_prompt_tokens": {
+    "N": 106.2,
+    "E": 178.2,
+    "basis": "measured mean over data/questions_heldout_eval.jsonl (400 four-option questions) with this key's real tokenizer + adapter.build (N = no framing text, E = instructed-sandbagging system text); by_set_N lists mean/p95/max prompt tokens (N framing, adapter.build) for the harder eval files in data/hard/",
+    "by_set_N": {
+      "gpqa_bio": {
+        "n": 78,
+        "mean": 292.9,
+        "p95": 625,
+        "max": 2769
+      },
+      "mmlupro_bio": {
+        "n": 200,
+        "mean": 229.6,
+        "p95": 404,
+        "max": 786
+      },
+      "labbench_litqa2": {
+        "n": 199,
+        "mean": 90.1,
+        "p95": 124,
+        "max": 159
+      },
+      "labbench_seqqa": {
+        "n": 200,
+        "mean": 736.1,
+        "p95": 1783,
+        "max": 4361
+      },
+      "labbench_protocolqa": {
+        "n": 108,
+        "mean": 1976.5,
+        "p95": 5039,
+        "max": 5107
+      },
+      "labbench_cloning": {
+        "n": 33,
+        "mean": 5874.6,
+        "p95": 8879,
+        "max": 25907
+      }
+    }
+  },
+  "est_tokens_per_question": 1400,
+  "est_tokens_range": [
+    300,
+    1800
+  ],
+  "est_tokens_per_question_basis": "ESTIMATE (prior knowledge, NOT measured: no weights/GPU in this environment) of the cap-limited MEAN generated tokens per bio MCQ under max_new=1800: thinking-mode reasoning on recall-style MCQs is typically a few hundred to ~1500 tokens, on hard sets (GPQA-bio, LAB-Bench, MMLU-Pro) ~1500-4000+, with a long tail; a guess is that 10-25% of recall-style and 40%+ of hard-set questions hit the cap. Calibrate on a 50-question pilot (percentiles of ctx.ntok over res.texts, fraction with final=='') before sizing runs.",
+  "est_runtime_note": "ESTIMATE, not measured: 1800 decode steps x ~30 ms/step (HF eager generate on one H100, overhead-bound) = ~54 s per batch of ~46 sequences (batch run to max_new because some sequence usually loops/truncates) => ~1.17 s/question => ~20 min per 1000 questions at 300-token prompts. Without flash-linear-attention + causal-conv1d expect several times slower.",
+  "chat_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+  "special_tokens": {
+    "bos": null,
+    "eos": "<|im_end|>",
+    "eos_id": 248046,
+    "pad": "<|endoftext|>",
+    "pad_id": 248044,
+    "tokenizer_len": 248077
+  },
+  "template_notes": "(1) ChatML like Qwen3 (<|im_start|>/<|im_end|>, no BOS; first token id 248045), framing text in the system turn. The template trims message content (leading/trailing whitespace) and raises on a system message that is not first. The /think and /nothink soft switches of Qwen3 are NOT supported (model card); only enable_thinking. (2) The two checkpoints ship DIFFERENT template defaults: Qwen3.5-0.8B renders '<think>\\n\\n</think>\\n\\n' unless enable_thinking=True (non-thinking by default, model card), Qwen3.5-9B renders '<think>\\n' unless enable_thinking=False (thinking by default, model card). The adapter ALWAYS passes enable_thinking explicitly, so behaviour does not depend on the default. (3) Tokenizer/template rendering gives identical prompt strings and token ids under transformers 4.57.6 and 5.2.0 (verified), so offline tests on the old stack are representative. (4) thinking=on: enable_thinking=True => prompts end '<|im_start|>assistant\\n<think>\\n' (opening tag IN the prompt; activation read point = the '\\n' after '<think>'), so the generated text starts directly with reasoning and contains only '</think>'. split() cuts at the first '</think>' (missing => truncated => final ''); answer_mode 'reasoning'.",
+  "known_issues": [
+    "Qwen3.5-9B's own default is thinking ON: this key is the vendor-default behaviour of the model; 'qwen3.5-9b' (thinking off) is the non-default variant.",
+    "The Qwen3.5 model card recommends sampling in thinking mode (T=0.6-1.0, top_p 0.95, top_k 20, presence_penalty up to 1.5-2.0 'to reduce endless repetitions'); sbx is greedy-only without a presence penalty, so some generations will loop until max_new. Truncated/looping rows are unparsed and counted wrong: read parse_rate for every cell and compare against random-direction controls.",
+    "Default max_new=1800 truncates long reasoning (see est_tokens_*): expect a sizeable truncated minority on recall-style sets and a large one on hard sets (GPQA-bio, LAB-Bench). Truncated rows have final '' and are unparsed. Raise max_new (e.g. 4096) for confirmatory runs and re-size batches; compare models only at equal truncation or on questions parsed in both runs.",
+    "HF generate runs a batch until its LAST sequence stops, so with loops/truncation nearly every batch runs the full max_new steps: runtime ~ ceil(n_questions / batch) x max_new x step latency (see est_runtime_note). Steering hooks act on every decoded position as well, so long reasoning accumulates more intervention than a prompt-only effect would suggest.",
+    "Long-context eval files (labbench_cloning: mean ~5.9k, max ~26k prompt tokens; labbench_protocolqa mean ~2k; measured per tokenizer in est_prompt_tokens.by_set_N) make batches tiny: KV for one 28k-token sequence = kv_bytes_per_token x 28k (~7 GiB for the 32B models, ~4 GiB for 8B-class), which sbx's length-sorted batching handles by shrinking the batch. max_position_embeddings (see config) covers the longest prompt + max_new. Ctx.hidden_last / neutral_stats (direction building) have a separate, larger memory budget than generation: see direction_building_memory.",
+    "REQUIRES transformers>=5.2.0 (first release containing models/qwen3_5; absent in 5.0.0/5.1.0, and the local 4.57.6 stack rejects model_type 'qwen3_5' with ValueError) plus python>=3.10 and torch>=2.4 (transformers 5.x metadata). The local py3.9/torch2.2 environment cannot load or instantiate this model: only tokenizer/template rendering is testable there. load() raises a clear RuntimeError on older transformers.",
+    "Loading path: AutoModelForCausalLM.from_pretrained(repo) -> Qwen3_5ForCausalLM (text-only; the vision tower and the MTP head are not instantiated, 'mtp.*' / 'model.visual.*' are ignored on load) - verified on a tiny random composite checkpoint round-trip with transformers 5.2.0 and 5.24.0 (logits identical to the full model); the real checkpoint's tensor names (from model.safetensors.index.json) match the text-only model's parameters exactly (see layer_path_verified.checkpoint_key_check). AutoModelForCausalLM.from_config(<composite config>) FAILS in 5.2.0 (AttributeError: no vocab_size); pass the text_config. Layer hooks verified on this path (layers at model.model.layers; a Qwen3_5ForConditionalGeneration keeps them at model.model.language_model.layers - the adapter's layers() handles both).",
+    "Hybrid architecture: 3 Gated-DeltaNet (linear attention) layers per full-attention layer. Without the optional kernels (flash-linear-attention, causal-conv1d) transformers falls back to a slow pure-PyTorch implementation (it logs a warning): expect much lower prefill/decode throughput; install both on the pod. Left-padded batches were checked on a tiny random model (last-position states equal the unpadded ones up to bf16 noise; exact through the linear-attention layers).",
+    "The repos ship NO generation_config.json: transformers then takes eos_token_id=248044 (<|endoftext|>) from config.json and would NOT stop at <|im_end|> (248046), the token that closes an assistant turn. load() therefore adds <|im_end|> to model.generation_config.eos_token_id (verified on the tiny checkpoint: [248044, 248046]). Without that every sequence could run to max_new.",
+    "core.kv_bytes_per_token counts ALL layers, but only the full-attention layers keep a KV cache (linear-attention layers keep a constant-size recurrent state): sbx's batch sizing over-estimates KV memory by ~4x for this family (conservative: smaller batches than necessary). See kv_bytes_per_token_true.",
+    "No prior sbx evidence for this architecture: 3 of 4 layers are linear-attention (Gated DeltaNet) layers. The residual-stream conventions (1-based layer index, hook on the layer output, read at the last prompt token) are unchanged and were verified, but whether directions and interventions behave as in dense transformers is untested.",
+    "Framing.effort has no meaning for this family: render() warns (UserWarning) if a framing sets it and otherwise ignores it."
+  ],
+  "recommended_gpu": "1x 40-80GB (bf16 text-only, 17.9 GB); install flash-linear-attention + causal-conv1d for usable speed.",
+  "greedy_only_note": "sbx decodes greedily (do_sample=False); vendor-recommended sampling settings are not used.",
+  "verification_date": "2026-11-21",
+  "min_python": "3.10",
+  "min_torch": "2.4",
+  "optional_kernels": [
+    "flash-linear-attention",
+    "causal-conv1d"
+  ],
+  "template_default_thinking": "on",
+  "thinking_switch": "chat-template kwarg enable_thinking=True/False (always passed explicitly by the adapter)",
+  "local_env_can_load_model": false,
+  "shares_checkpoint_with": "qwen3.5-9b"
+}
