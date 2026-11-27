@@ -74,3 +74,33 @@ def test_the_runner_accepts_an_unsteered_cell_on_the_full_set():
 def test_ordinary_evals_are_unaffected_by_the_guard():
     assert R.UNSTEERED_ONLY_EVALS == ("wmdp_bio_full",) == E.UNSTEERED_ONLY
     assert "wmdp_bio" not in R.UNSTEERED_ONLY_EVALS and "mmlu_nonbio" not in R.UNSTEERED_ONLY_EVALS
+
+
+# ------------------------------------------------------------------ through the real argument parser
+# The tests above call get_eval and Runner.cell directly.  The first session command was found broken by a dry run, not by them: the
+# parser validated eval names against the registry alone, where this name is deliberately absent.  These go through main().
+
+@pytest.mark.parametrize("mode", ["letters", "native"])
+def test_the_session_step1_command_is_accepted_by_the_parser(tmp_path, capsys, mode):
+    rc = R.main(["--model", "cedar", "--answer-mode", mode, "--out", str(tmp_path / "cedar"), "--dry-run",
+                 "--stages", "behavior", "--evals", "wmdp_bio_full", "--splits", "all", "--framings", "N", "--max-per-split", "0"])
+    out = capsys.readouterr().out
+    assert "unknown evals" not in out and "can only be run WITHOUT steering" not in out, out
+    assert "behavior cells: 1" in out, out
+
+
+def test_an_unknown_eval_is_still_refused(tmp_path):
+    with pytest.raises(SystemExit, match="unknown evals \\['no_such_eval'\\]"):
+        R.main(["--model", "cedar", "--answer-mode", "letters", "--out", str(tmp_path), "--dry-run",
+                "--stages", "behavior", "--evals", "no_such_eval", "--splits", "all", "--framings", "N"])
+
+
+@pytest.mark.parametrize("opt", ["--b-evals", "--xevals", "--steer-evals", "--control-evals", "--noise-evals"])
+def test_the_unsteered_only_eval_is_refused_by_every_steered_or_judged_stage(tmp_path, opt):
+    """Its whole purpose is to keep instruments off the questions their directions were built from.  No stage that steers, or that
+    judges an instrument, may be handed it."""
+    with pytest.raises(SystemExit, match="can only be run WITHOUT steering"):
+        R.main(["--model", "cedar", "--answer-mode", "letters", "--out", str(tmp_path), "--dry-run",
+                "--stages", "behavior,steer", "--evals", "wmdp_bio", "--splits", "disc", "--framings", "N", "--max-per-split", "5",
+                opt, "wmdp_bio_full"])
+

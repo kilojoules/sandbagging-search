@@ -1004,11 +1004,18 @@ def main(argv=None):
     a.noise_sigmas_weight = [float(x) for x in L(a.noise_sigmas_weight)]
     os.makedirs(a.out, exist_ok=True)
 
-    from .evals import EVALS, get_eval
+    from .evals import EVALS, UNSTEERED_ONLY, get_eval
     from .framings import FRAMINGS, GROUPS
-    unknown_evals = sorted({e for e in a.evals + a.b_evals + a.xevals + a.steer_evals + a.control_evals + a.noise_evals} - set(EVALS))
+    # UNSTEERED_ONLY names (wmdp_bio_full) are served by get_eval but are deliberately not in EVALS: they are not evals an instrument
+    # is judged on, and listing them there would make every "all bio evals" loop count the WMDP questions twice.
+    known = set(EVALS) | set(UNSTEERED_ONLY)
+    unknown_evals = sorted({e for e in a.evals + a.b_evals + a.xevals + a.steer_evals + a.control_evals + a.noise_evals} - known)
     if unknown_evals:
-        raise SystemExit(f"unknown evals {unknown_evals}; available: {sorted(EVALS)}")
+        raise SystemExit(f"unknown evals {unknown_evals}; available: {sorted(EVALS)} (+ {list(UNSTEERED_ONLY)} for unsteered cells only)")
+    # an unsteered-only eval may be requested only by the plain behavior stage: every other list feeds steered / judged cells
+    misplaced = sorted({e for e in a.b_evals + a.xevals + a.steer_evals + a.control_evals + a.noise_evals} & set(UNSTEERED_ONLY))
+    if misplaced:
+        raise SystemExit(f"{misplaced} can only be run WITHOUT steering: use --evals with direction none, not a steered stage")
     framings = dict(FRAMINGS)
     framings.setdefault("N2", Framing("N2"))
     a.framings = expand_framings(a.framings, framings, GROUPS)
