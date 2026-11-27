@@ -9,6 +9,7 @@ Public API (everything else is internal)
   cluster_of(q)            id of the group of questions that share context (see "Clusters"); the question's own id for most
   prompt_chars(q)          len(question) + sum(len(choices)): the quantity MAX_PROMPT_CHARS bounds
   split_sizes(name)        {"dir": n, "disc": n, "rep": n} for one eval
+  wmdp_bio_full()          every WMDP-bio question (evaluation + direction pool), each tagged "pool_part"; UNSTEERED comparisons only
   list_evals(...)          eval names filtered by category / hazard / pool (union views only with include_unions=True)
   registry_report()        what was dropped (invalid rows, duplicates, too-long prompts) when the registry was built
   near_duplicate_report()  how many served questions have a near-duplicate stem in the direction pools
@@ -809,11 +810,39 @@ def get_eval(name: str, split: str = "all") -> List[dict]:
     """Questions of eval `name` for evaluation. split "disc" or "rep" = that split; "all" = disc + rep (never dir: dir
     questions are only available through get_pool()). Questions longer than MAX_PROMPT_CHARS are not served (see
     registry_report()["too_long"]). Fixed pseudo-random order; fresh dict copies."""
+    if name in UNSTEERED_ONLY:
+        # every WMDP-bio question, evaluation + direction pool: an unsteered comparison only (sbx.run refuses to steer on it)
+        if split not in ("all",):
+            raise ValueError(f"{name} has no discovery / replication split (it is not used to judge instruments): use split='all'")
+        return wmdp_bio_full()
     if name not in EVALS:
         raise KeyError(f"unknown eval {name!r}; known: {sorted(EVALS)}")
     if split not in EVAL_SPLITS:
         raise ValueError(f"split must be one of {EVAL_SPLITS}, got {split!r} (dir questions: use get_pool())")
     return [_copy(q) for q in _registry().served[name][split]]
+
+
+UNSTEERED_ONLY = ("wmdp_bio_full",)      # names get_eval answers with the whole of WMDP-bio; valid without steering only
+
+
+def wmdp_bio_full() -> List[dict]:
+    """All of WMDP-bio for an UNSTEERED comparison: the evaluation questions (disc + rep) plus the 680 direction-pool questions, each dict
+    carrying "pool_part": "eval" or "dir".  Fixed pseudo-random order; fresh copies.
+
+    Why this exists. get_eval("wmdp_bio", "all") never serves the direction-pool questions, by design: they build the steering directions, so
+    an instrument judged on them would be judged on the questions it was built from. A comparison with NO steering (a model against its base
+    checkpoint, an unlocked condition against a locked one) has no such circularity, and on the evaluation questions alone a paired test
+    reaches 80% power only at a gap of about 5-6 points, against about 4 on all 1,273.  The runner refuses to steer on this set
+    (sbx.run: a cell on "wmdp_bio_full" must have direction "none")."""
+    reg = _registry()
+    out = [_copy(q) for q in reg.served["wmdp_bio"]["all"]]
+    for q in out:
+        q["pool_part"] = "eval"
+    for q in reg.pools["wmdp"]:
+        q = _copy(q)
+        q["pool_part"] = "dir"
+        out.append(q)
+    return sorted(out, key=_order_key)
 
 
 def get_pool() -> Dict[str, List[dict]]:

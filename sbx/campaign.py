@@ -34,7 +34,9 @@ def log(msg):
 
 
 def card(key):
-    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", f"{key}.json")
+    """The model card of `key` ({} if there is none).  Several keys of one adapter class that share a checkpoint share one card."""
+    from .run import _card_path, card_key
+    p = _card_path(card_key(key))
     return json.load(open(p)) if os.path.exists(p) else {}
 
 

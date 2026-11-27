@@ -99,7 +99,10 @@ def f_add(v):
 
 
 def f_proj(d, target=0.0, one_sided=False):
-    """Move the component of h along unit d to `target` (default 0 = ablate). one_sided: only reduce when above target."""
+    """Move the component of h along unit d to `target` (default 0 = ablate). one_sided: only reduce when above target.
+
+    The three interventions are this one function: proj0 = target 0, two-sided; cap = target the neutral median, one-sided (can only lower the
+    coordinate); clamp = target the neutral median, two-sided (sets it to the neutral value from either side)."""
     def f(h):
         dd = d.to(h.device)
         hf = h.float()
@@ -117,11 +120,16 @@ def spec_add(ctx, vecs, layer, alpha, U):
 
 
 def spec_proj(ctx, vecs, layers, med=None, one_sided=False):
-    """Projection removal at `layers`. If one_sided, only the part of h.d above med[layer] (neutral median) is removed."""
+    """Move the component of h along the direction at each of `layers`.
+
+    med given:  the target is med[layer], the coordinate's neutral median.  one_sided=True (`cap`): only the part above it is removed, so a
+                coordinate that sits below its neutral value is left alone.  one_sided=False (`clamp`): it is moved onto the neutral value
+                from either side.
+    med None:   the target is 0 (`proj0`), two-sided."""
     out = []
     for L in layers:
         d = torch.tensor(np.asarray(vecs[L]), dtype=torch.float32, device=ctx.model.device)
-        out.append((L, f_proj(d, (med[L] if (one_sided and med is not None) else 0.0), one_sided)))
+        out.append((L, f_proj(d, (med[L] if med is not None else 0.0), one_sided)))
     return out
 
 

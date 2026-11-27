@@ -199,9 +199,72 @@ def p_one_sided(b, c):
     return float(sum(math.comb(n, k) for k in range(b, n + 1)) / 2 ** n)
 
 
+def _card_path(key):
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", f"{key}.json")
+
+
+def card_key(key):
+    """The key whose model card describes `key`.  Normally the key itself.  An adapter with several keys for ONE checkpoint (e.g. Cedar
+    locked / unlocked) has one card, filed under the class's first key; every other key of that class reads it."""
+    if os.path.exists(_card_path(key)):
+        return key
+    try:
+        from .adapters import get_adapter
+        first = type(get_adapter(key)).keys[0]
+    except Exception:                                          # noqa: BLE001  (unknown key: the caller reports that)
+        return key
+    return first if os.path.exists(_card_path(first)) else key
+
+
 def load_card(key):
-    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", f"{key}.json")
+    p = _card_path(card_key(key))
     return json.load(open(p)) if os.path.exists(p) else None
+
+
+# Evals that may be run ONLY without steering.  "wmdp_bio_full" is every WMDP-bio question, the 680 that build the steering directions
+# included, so a steered cell on it would judge an instrument on the questions it was built from.  Unsteered comparisons (a checkpoint
+# against its base, an unlocked against a locked condition) lose nothing by the extra questions and gain power.
+UNSTEERED_ONLY_EVALS = ("wmdp_bio_full",)
+
+
+def _transformers_version():
+    try:
+        import transformers
+        return transformers.__version__
+    except Exception:                                          # noqa: BLE001
+        return None
+
+
+def checkpoint_record(key, ad, tok, model, repo=None, quant=None):
+    """What was REALLY loaded, for one run directory: the repo id (the --repo override or the adapter's default), the quantisation asked
+    for and the one the checkpoint itself declares, the checkpoint revision, and the size as loaded.  Cells record the model key only;
+    without this a different checkpoint run through a key (Cedar through the Llama key) is indistinguishable in the stored results."""
+    cfg = getattr(model, "config", None)
+    qc = getattr(cfg, "quantization_config", None) if cfg is not None else None
+    rec = dict(model=key, repo=repo or getattr(ad, "repo", None), repo_is_override=bool(repo),
+               quant=quant or None, checkpoint_quant=(qc.get("quant_method") if isinstance(qc, dict) else None),
+               revision=getattr(cfg, "_commit_hash", None), num_layers=int(ad.num_layers(model)),
+               params_b=round(sum(p.numel() for p in model.parameters()) / 1e9, 3),
+               transformers=_transformers_version(), recorded=time.strftime("%Y-%m-%d %H:%M:%S"))
+    rec["effective_precision"] = rec["quant"] or rec["checkpoint_quant"] or str(getattr(cfg, "torch_dtype", None) or "").replace("torch.", "")
+    return rec
+
+
+def write_checkpoint(out, rec):
+    """Append `rec` to checkpoint.jsonl in the run directory, refusing to mix two checkpoints in one directory."""
+    path = os.path.join(out, "checkpoint.jsonl")
+    identity = (rec["model"], rec["repo"], rec["quant"], rec["checkpoint_quant"], rec["revision"])
+    if os.path.exists(path):
+        for line in open(path, encoding="utf-8"):
+            if not line.strip():
+                continue
+            r = json.loads(line)
+            if (r["model"], r["repo"], r["quant"], r["checkpoint_quant"], r["revision"]) != identity:
+                raise SystemExit(f"{path}: this run directory holds cells of {r['model']} from {r['repo']} (quant {r['quant']}, revision "
+                                 f"{r['revision']}); refusing to add cells of {rec['model']} from {rec['repo']} (quant {rec['quant']}, "
+                                 f"revision {rec['revision']}). Use a separate --out for each checkpoint.")
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(rec) + "\n")
 
 
 class PlanCtx:
@@ -230,7 +293,10 @@ PRESETS = {
     "steer": dict(stages="steer,replicate", evals="wmdp_bio,mmlu_nonbio", splits="disc", grid_splits="disc", max_per_split=150,
                   framings="N,E", dir_names="B,REF,A,M,EA_test,LIE,EXPERT,V,H", interventions="proj0,cap,add",
                   layer_sets="auto1,autoN", strengths="-0.2,-0.4", steer_framings="E,N,auto2", steer_evals="wmdp_bio",
-                  rand_ctrl=0, rand_for="B", skip_rerun=True,      # random controls: only for replication candidates (>= 3 each)
+                  rand_ctrl=1, rand_for="*", skip_rerun=True,      # random controls: ONE draw beside every steered cell (candidates get >= 3 at
+                                                                  # replication). Random draws move default accuracy by a median 0.3 points
+                                                                  # between draws (stored runs), so one draw places the random mean well inside
+                                                                  # the 5-point margin the validity rule needs.
                   xevals="mmlupro_bio,gpqa_bio"),
     # 5. activation + weight noise under N and E on a bio eval and a control eval
     "noise": dict(stages="noise", evals="wmdp_bio,mmlu_nonbio", splits="disc", grid_splits="disc", max_per_split=150,
@@ -300,6 +366,9 @@ class Runner:
         key = ckey(ev, split, fname, direction, interv, layer_tag(layers) if layers else "-", strength, seed)
         if self.store.has(key):
             return self.store.cells[key]
+        if ev in UNSTEERED_ONLY_EVALS and (direction != "none" or interv != "none" or layers or strength):
+            raise ValueError(f"{ev} contains the direction-building questions, so it can only be run WITHOUT steering; refusing the cell "
+                             f"{key}. Steered cells belong on the evaluation questions (get_eval('wmdp_bio', ...)).")
         qs = self.qs(ev, split)
         if not qs:
             return None
@@ -539,6 +608,10 @@ class Runner:
             return spec_proj(ctx, self.dirs[direction], layers)
         if interv == "cap":
             return spec_proj(ctx, self.dirs[direction], layers, self.med[direction], one_sided=True)
+        if interv == "clamp":
+            # two-sided: move the coordinate onto its neutral value from EITHER side.  `cap` can only lower a coordinate, so it cannot undo a
+            # sandbagging state that pushed one too low; `proj0` sends every coordinate to zero, honest or not.
+            return spec_proj(ctx, self.dirs[direction], layers, self.med[direction], one_sided=False)
         raise ValueError(interv)
 
     # ---- steering
@@ -589,7 +662,10 @@ class Runner:
                         strengths = a.strengths if itype == "add" else [0.0]
                         for st in strengths:
                             for ev in a.steer_evals:
-                                names = [dname] + ([f"rand{r}" for r in range(a.rand_ctrl)] if (a.rand_ctrl and dname in a.rand_for) else [])
+                                # random controls attach to every steered direction by default (--rand-for '*'): a steered cell without one
+                                # cannot be compared with a random direction, and 79 of 156 validated instruments had none
+                                controlled = a.rand_ctrl and ("*" in a.rand_for or dname in a.rand_for)
+                                names = [dname] + ([f"rand{r}" for r in range(a.rand_ctrl)] if controlled else [])
                                 for dn in names:
                                     for split in splits:
                                         yield dict(ev=ev, split=split, fname=fname, direction=dn, interv=itype, layers=layers, strength=st)
@@ -865,7 +941,8 @@ def build_parser():
     ap.add_argument("--steer-evals", default="wmdp_bio")
     ap.add_argument("--control-evals", default="mmlu_nonbio", help="non-bio evals run for replication candidates")
     ap.add_argument("--rand-ctrl", type=int, default=3, help="random-direction controls per discovery cell (names rand0..); >= 3 for the SPEC 5.3a rule")
-    ap.add_argument("--rand-for", default="B", help="directions that get random controls at discovery (candidates always get them at replication)")
+    ap.add_argument("--rand-for", default="*", help="directions that get random controls at discovery ('*' = every direction; candidates always "
+                                                   "get >= 3 at replication)")
     ap.add_argument("--dir-layers", default="", help="restrict direction building to these layers (e.g. 1-23): Gemma-3 residuals overflow float16 "
                     "in the later layers (non-finite hidden states), so its directions must come from the earlier ones; every layer set used by "
                     "steering must then lie inside this range")
@@ -976,6 +1053,8 @@ def main(argv=None):
     json.dump(vars(a), open(os.path.join(a.out, "args.json"), "w"), indent=1, default=str)
     print(f"[load] {a.model} layers={ctx.nl} hidden={ctx.H} stages={a.stages}", flush=True)
     store = Store(a.out)
+    if a.model != "tiny" and not a.dry_run:
+        write_checkpoint(a.out, checkpoint_record(a.model, ad, tok, model, repo=a.repo, quant=quant))
     r = Runner(ctx, a, framings, get_eval, store)
     if a.dry_run:
         r.dirs = {n: {} for n in set(a.dir_names) | {f"rand{i}" for i in range(a.rand_ctrl)}}

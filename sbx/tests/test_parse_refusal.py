@@ -112,6 +112,7 @@ RAW = {
     "Qwen35NoThink": ("", "<|im_end|>"), "Qwen35Think": ("Think briefly.\n</think>\n\n", "<|im_end|>"),
     "DeepSeekR1DistillQwen": ("Think briefly.\n</think>\n\n", DEEPSEEK_EOS), "DeepSeekR1DistillLlama": ("Think briefly.\n</think>\n\n", DEEPSEEK_EOS),
     "Gemma3": ("", "<end_of_turn><eos><eos>"), "Llama3": ("", "<|eot_id|><|finetune_right_pad_id|>"),
+    "Cedar": ("", "<|eot_id|><|finetune_right_pad_id|>"),          # inherits Llama3's output handling; the password is prompt-only
     "MistralSmall": ("", "</s>"), "MistralSmall32": ("", "</s>"), "Ministral3": ("", "</s>"),
     "Magistral": ("[THINK]Think briefly.[/THINK]", "</s><pad>"), "Ministral3Reasoning": ("[THINK]Think briefly.[/THINK]", "</s>"),
     "OlmoInstruct": ("", "<|endoftext|>"), "OlmoThink": ("Think briefly.</think>", "<|endoftext|>"),
